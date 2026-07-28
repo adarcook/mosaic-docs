@@ -4,39 +4,60 @@ This roadmap defines the order in which Mosaic will be built. Each stage has a c
 
 ## Status legend
 
-- ✅ **Complete** — the required work has been merged into the relevant repository's `main` branch.
+- ✅ **Complete** — the required work has been verified and merged into the relevant repository's `main` branch.
 - 🟡 **In review / verification** — implementation exists in an open PR or still requires local verification.
 - ⬜ **Not started** — no completed implementation has been merged into `main`.
+
+## Current architecture direction
+
+```text
+Mosaic Android
+  ├── Room and local outbox
+  └── Firebase Auth + Firestore
+                  ↓
+          immutable event relay
+                  ↓
+Mosaic Core on Windows 11
+  ├── contract validation
+  ├── durable local event store
+  ├── projections and history
+  └── retrieval, provenance and intelligence
+```
+
+Firebase provides identity and synchronization availability. It does not replace local Core storage, `mosaic-contracts`, or Mosaic's durable intelligence layer.
+
+See [`docs/architecture/FIREBASE_SYNC.md`](docs/architecture/FIREBASE_SYNC.md) for the full decision and boundaries.
 
 ## Current status
 
 | Stage | Status | Notes |
 |---|---|---|
-| 0. Architecture and contracts | ✅ Complete | Architecture documentation and the initial Phase 1 contracts are merged into `main`. |
+| 0. Architecture and initial contracts | ✅ Complete | Initial architecture and Phase 1 contracts are merged into `main`. |
 | 1. Windows Core foundation | 🟡 In review / verification | Implemented in `mosaic-core` PR #1; awaiting Windows 11 verification and merge. |
-| 2. Local Core ingestion API | ⬜ Not started | Begins after Stage 1 is verified and merged. |
-| 3. Durable local event storage | ⬜ Not started | Depends on the ingestion API. |
-| 4. Meal projection and correction history | ⬜ Not started | Depends on durable event storage. |
-| 5. Android meal recording and local queue | ⬜ Not started | Depends on stable contracts; may overlap late Stage 4 work. |
-| 6. Android-to-Core local synchronization | ⬜ Not started | Depends on Stages 2–5. |
-| 7. Retrieval, evidence and cited answers | ⬜ Not started | Completes the first useful end-to-end slice. |
-| 8. Meal analysis assistance | ⬜ Not started | Added only after manual meal recording is reliable. |
-| 9. Inventory module inside Android | ⬜ Not started | Uses the integration boundary established by the meal contracts. |
-| 10. VPS synchronization and remote availability | ⬜ Not started | Added only when away-from-home availability has concrete value. |
-| 11. Fitness and swimming domains | ⬜ Not started | Reuses the proven ingestion and evidence pattern. |
-| 12. Broader personal intelligence | ⬜ Not started | Photos, documents, projects and controlled automations. |
+| 2. Firebase identity and relay foundation | ⬜ Not started | Firebase project, Auth choice, Firestore model, Rules and emulator tests. |
+| 3. Android meal recording and event outbox | ⬜ Not started | Room models, manual meals, immutable events and offline queue. |
+| 4. Android-to-Firebase publishing | ⬜ Not started | Authenticated user-scoped event upload and sync status. |
+| 5. Core Firebase consumer and contract validation | ⬜ Not started | Core reads configured users and validates downloaded events locally. |
+| 6. Durable local event storage | ⬜ Not started | Idempotent local event store, ownership, provenance and recovery. |
+| 7. Meal projection and correction history | ⬜ Not started | Current meal view with complete revision history. |
+| 8. Retrieval, evidence and cited answers | ⬜ Not started | Completes the first useful end-to-end slice. |
+| 9. Meal analysis assistance | ⬜ Not started | Added only after manual recording and synchronization are reliable. |
+| 10. Inventory module inside Android | ⬜ Not started | Uses the integration boundary established by meal contracts. |
+| 11. Fitness and swimming domains | ⬜ Not started | Reuses the proven event, provenance and retrieval pattern. |
+| 12. Optional VPS services | ⬜ Not started | Added for inference, integrations or workflows Firebase does not cover. |
+| 13. Broader personal intelligence | ⬜ Not started | Photos, documents, projects and controlled automations. |
 
 ## Current focus
 
-> Verify the Windows 11 Core foundation locally, then merge it into `main`.
+> Verify the Windows 11 Core foundation locally, merge it into `main`, then establish the Firebase development environment and security boundary.
 
 ---
 
-## Stage 0 — Architecture and contracts — ✅ Complete
+## Stage 0 — Architecture and initial contracts — ✅ Complete
 
 ### Goal
 
-Establish stable repository boundaries and a shared language for data exchanged between components.
+Establish repository boundaries and a shared versioned language for data exchanged between components.
 
 ### Repositories
 
@@ -47,21 +68,19 @@ Establish stable repository boundaries and a shared language for data exchanged 
 
 - system architecture and repository responsibilities;
 - multi-repository architecture decision;
-- versioned meal, event, sync and Inventory-consumption schemas;
-- valid JSON examples and a validation script;
-- trust, security and deployment boundaries;
+- canonical meal, event, sync and Inventory-consumption schemas;
+- valid JSON examples and contract validation script;
+- initial trust and deployment boundaries;
 - Phase 1 implementation plan.
 
 ### Completion gate
 
-A meal record and sync batch can be represented in implementation-neutral JSON and validated against canonical schemas.
+A meal record and event batch can be represented in implementation-neutral JSON and validated against canonical schemas.
 
 ### Completion evidence
 
 - `mosaic-docs` architecture PR #1 merged into `main`;
 - `mosaic-contracts` Phase 1 contracts PR #1 merged into `main`.
-
-Future contract changes remain normal versioned follow-up work and do not reopen this initial stage.
 
 ---
 
@@ -82,8 +101,7 @@ Run the first reliable Mosaic Core foundation directly on Windows 11 without Doc
 - Python virtual environment and package configuration;
 - schema loader and `$ref` registry;
 - event-type and event-version schema registry;
-- tests for valid examples, missing submodule and unsupported versions;
-- clear Windows installation instructions.
+- contract tests and clear Windows installation instructions.
 
 ### Completion gate
 
@@ -93,133 +111,185 @@ On the home computer, a clean clone with submodules can run the setup script, lo
 
 Implementation exists in `mosaic-core` PR #1. This stage becomes ✅ **Complete** only after the Windows 11 check succeeds and the PR is merged into `main`.
 
-### Explicitly deferred
-
-- Docker;
-- database selection;
-- FastAPI sync endpoint;
-- automatic Windows startup;
-- remote access.
-
 ---
 
-## Stage 2 — Local Core ingestion API — ⬜ Not started
+## Stage 2 — Firebase identity and relay foundation — ⬜ Not started
 
 ### Goal
 
-Allow Core to receive versioned events and reject invalid or unsupported input before business storage.
+Create a secure, testable cloud rendezvous point so Android and Core do not need to be online or directly reachable at the same time.
+
+### Repositories and services
+
+- Firebase project configuration
+- `mosaic-android`
+- `mosaic-core`
+- `mosaic-docs`
 
 ### Deliverables
 
-- minimal FastAPI application bound initially to `127.0.0.1`;
-- health and readiness endpoints;
-- `POST /v1/sync/batches`;
-- validation of sync batch, event envelope and typed payload;
-- per-event accepted, duplicate, rejected and unsupported-version results;
-- deterministic error responses and tests.
+- separate development Firebase project;
+- initial sign-in provider and user identity strategy;
+- user-scoped Firestore event paths;
+- device and Core-consumer metadata model;
+- Firestore Security Rules;
+- Rules tests using the Firebase Emulator Suite;
+- secret and configuration handling outside Git;
+- documented retention and deletion assumptions for the first slice.
 
 ### Completion gate
 
-The canonical sync example is accepted, malformed input is rejected with useful paths, and resending an event returns `duplicate`.
+Two test users are isolated by Rules, an authenticated client can write only to its own event path, and unauthenticated or cross-user access is rejected in emulator tests.
 
 ---
 
-## Stage 3 — Durable local event storage — ⬜ Not started
+## Stage 3 — Android meal recording and event outbox — ⬜ Not started
 
 ### Goal
 
-Persist accepted events safely and preserve their original form and provenance across Core restarts.
+Create and edit real meal records offline and convert them into retry-safe immutable contract events.
+
+### Repository
+
+- `mosaic-android`
 
 ### Deliverables
 
-- initial local database selected from measured needs; SQLite is acceptable for the first single-user slice;
+- Room entities for meals, components and queued events;
+- manual meal creation and editing;
+- stable aggregate IDs and revisions;
+- structured quantity, unit and preparation state;
+- optional Inventory item references;
+- mapping between Room entities and contract DTOs;
+- immutable event creation;
+- local outbox with pending, sent and failed states;
+- fixture tests compatible with `mosaic-contracts`.
+
+### Completion gate
+
+A meal can be recorded and corrected offline, survive restart, and produce contract-valid immutable events with stable IDs and increasing revisions.
+
+---
+
+## Stage 4 — Android-to-Firebase publishing — ⬜ Not started
+
+### Goal
+
+Publish queued Android events to the authenticated user's Firestore event space without losing offline capability.
+
+### Repository
+
+- `mosaic-android`
+
+### Deliverables
+
+- Firebase Authentication integration;
+- Firestore client integration;
+- writes to `users/{uid}/events/{eventId}` or the final approved equivalent;
+- duplicate-safe document IDs based on `eventId`;
+- retry and acknowledgement handling;
+- user-visible synchronization status;
+- tests for sign-out, offline use, reconnection and permission failures.
+
+### Completion gate
+
+A meal event created offline is uploaded after connectivity returns, is stored only under the authenticated user, and a repeated upload does not create a second cloud event.
+
+---
+
+## Stage 5 — Core Firebase consumer and contract validation — ⬜ Not started
+
+### Goal
+
+Allow the Windows Core installation to consume cloud events for explicitly configured users and validate them before business storage.
+
+### Repository
+
+- `mosaic-core`
+
+### Deliverables
+
+- secure Firebase credential and configuration loading;
+- explicit mapping of allowed Firebase users to local Core users;
+- polling or listener-based event consumption;
+- envelope and typed-payload validation using the pinned submodule;
+- unsupported-version and malformed-event handling;
+- consumer checkpoint metadata for efficiency;
+- dead-letter or diagnostic handling for rejected events;
+- no reliance on Firestore client Rules as the only Core authorization control.
+
+### Completion gate
+
+Core downloads a canonical event for an allowed user, validates it successfully, rejects malformed or unsupported events, and ignores events for unconfigured users.
+
+---
+
+## Stage 6 — Durable local event storage — ⬜ Not started
+
+### Goal
+
+Persist accepted events safely and preserve their exact original form, ownership and provenance across restarts.
+
+### Repository
+
+- `mosaic-core`
+
+### Deliverables
+
+- initial local database; SQLite is acceptable for the first single-machine slice;
 - event store with unique `eventId` enforcement;
-- producer, device, source and received-time metadata;
-- transaction-safe batch ingestion;
-- migrations, restart tests and a local backup procedure.
+- Firebase owner UID, producer device, source and received-time metadata;
+- transaction-safe ingestion;
+- idempotent processing independent of checkpoints;
+- migrations, restart tests and local backup procedure.
 
 ### Completion gate
 
-An accepted event survives restart, remains deduplicated and can be retrieved exactly with its source metadata.
+An accepted Firebase event survives restart, remains deduplicated after repeated consumption, and can be retrieved exactly with user and source metadata.
 
 ---
 
-## Stage 4 — Meal projection and correction history — ⬜ Not started
+## Stage 7 — Meal projection and correction history — ⬜ Not started
 
 ### Goal
 
-Turn raw meal events into a useful current view while retaining prior revisions.
+Turn accepted meal events into a useful current view while retaining every prior revision.
+
+### Repository
+
+- `mosaic-core`
 
 ### Deliverables
 
 - normalized meal and component projections;
 - revision ordering and conflict rules;
-- current-state queries by meal ID and date range;
+- user-scoped queries by meal ID and date range;
 - correction history without destructive overwrite;
 - provenance links from projection fields to source events;
 - optional Inventory references retained as metadata.
 
 ### Completion gate
 
-A meal can be created, corrected and queried after restart; the latest revision is returned while earlier revisions remain accessible.
+A meal can be created, corrected and queried after restart; the latest valid revision is returned while earlier revisions remain accessible and attributable to the correct user.
 
 ---
 
-## Stage 5 — Android meal recording and local queue — ⬜ Not started
-
-### Goal
-
-Create and edit real meal records in Android and prepare them for reliable synchronization.
-
-### Deliverables
-
-- Room entities for meals, components and queued events;
-- manual meal entry and editing;
-- structured quantity, unit and preparation state;
-- optional Inventory item reference;
-- mapping between Room entities and contract DTOs;
-- contract-compatible JSON serialization;
-- retry-safe local queue and fixture tests.
-
-### Completion gate
-
-A meal can be recorded offline, survive restart, be edited and produce a contract-valid batch with stable IDs and revisions.
-
----
-
-## Stage 6 — Android-to-Core local synchronization — ⬜ Not started
-
-### Goal
-
-Complete the first end-to-end data path over the home network or a direct local connection.
-
-### Deliverables
-
-- configurable Core address;
-- initial local-device trust or pairing mechanism;
-- queued batch upload;
-- acknowledgement, retry and checkpoint handling;
-- duplicate-safe resends;
-- visible synchronization status and actionable failures in Android.
-
-### Completion gate
-
-A meal created on Android reaches Core, can be sent twice without duplication, survives restart and supports corrected revisions with retained history.
-
----
-
-## Stage 7 — Retrieval, evidence and cited answers — ⬜ Not started
+## Stage 8 — Retrieval, evidence and cited answers — ⬜ Not started
 
 ### Goal
 
 Make trusted records searchable and answer basic questions with resolvable evidence.
 
+### Repository
+
+- `mosaic-core`
+
 ### Deliverables
 
-- deterministic retrieval by date, food and nutrition fields;
+- deterministic retrieval by user, date, food and nutrition fields;
 - evidence objects pointing to exact records and revisions;
 - citation resolver;
-- basic question endpoint;
+- basic local question endpoint or interface;
 - calculation path for daily nutrition totals;
 - distinction between stored facts, calculations and inference.
 
@@ -227,13 +297,13 @@ Semantic embeddings are introduced only where they improve retrieval beyond stru
 
 ### Completion gate
 
-Core can answer “How much protein did I record today?” and link the answer to the exact meal records used.
+Core can answer “How much protein did I record today?” for the selected user and link the answer to the exact meal revisions used.
 
 This gate completes the first useful Phase 1 vertical slice.
 
 ---
 
-## Stage 8 — Meal analysis assistance — ⬜ Not started
+## Stage 9 — Meal analysis assistance — ⬜ Not started
 
 ### Goal
 
@@ -242,19 +312,19 @@ Reduce manual entry while preserving user control and the distinction between es
 ### Deliverables
 
 - photo- or text-assisted analysis;
-- replaceable model adapter;
+- replaceable model adapter, local or remote;
 - `meal-analysis` output kept separate from canonical `MealRecord`;
 - review, confirmation and correction flow;
 - assumptions and confidence retained;
-- only confirmed output becomes a trusted revision.
+- only confirmed output becomes a trusted meal revision.
 
 ### Completion gate
 
-A generated estimate can be corrected and converted into a canonical meal record without losing the estimate or its assumptions.
+A generated estimate can be corrected and converted into a canonical meal record without losing the original estimate or assumptions.
 
 ---
 
-## Stage 9 — Inventory module inside Android — ⬜ Not started
+## Stage 10 — Inventory module inside Android — ⬜ Not started
 
 ### Goal
 
@@ -275,32 +345,11 @@ A confirmed meal may request consumption from a linked item, uncertain conversio
 
 ---
 
-## Stage 10 — VPS synchronization and remote availability — ⬜ Not started
-
-### Goal
-
-Add the VPS only when remote availability provides concrete value, while Core remains the durable intelligence layer.
-
-### Deliverables
-
-- authentication and device authorization;
-- encrypted secrets;
-- remote event relay and retry behavior;
-- minimal retained data with deletion rules;
-- Core catch-up after being offline;
-- observability, backups and failure handling.
-
-### Completion gate
-
-Android can record away from home, the VPS retains only required relay state and Core catches up safely without duplicates.
-
----
-
 ## Stage 11 — Fitness and swimming domains — ⬜ Not started
 
 ### Goal
 
-Apply the proven contracts, synchronization, provenance and retrieval pattern to training data.
+Apply the proven contracts, Firebase relay, local event storage, provenance and retrieval pattern to training data.
 
 ### Deliverables
 
@@ -317,11 +366,34 @@ Core can answer questions combining confirmed meals, measurements and training s
 
 ---
 
-## Stage 12 — Broader personal intelligence — ⬜ Not started
+## Stage 12 — Optional VPS services — ⬜ Not started
 
 ### Goal
 
-Expand Mosaic beyond health after ingestion, memory, permissions and evidence systems are proven.
+Add VPS services only when a capability is not appropriately provided by Android, Firebase or the local Core.
+
+### Candidate responsibilities
+
+- remote model inference;
+- external webhooks and integrations;
+- scheduled cloud workflows;
+- media processing too expensive for the phone;
+- controlled remote commands;
+- vendor-independent relay if Firebase is later replaced.
+
+The VPS must not silently become the canonical personal-intelligence database.
+
+### Completion gate
+
+A concrete capability requires the VPS, has explicit authentication and retention rules, and can fail without corrupting Core's durable local state.
+
+---
+
+## Stage 13 — Broader personal intelligence — ⬜ Not started
+
+### Goal
+
+Expand Mosaic beyond health after identity, synchronization, storage, permissions and evidence systems are proven.
 
 ### Candidate domains
 
@@ -330,7 +402,7 @@ Expand Mosaic beyond health after ingestion, memory, permissions and evidence sy
 - software projects and repositories;
 - controlled tools, scheduled workflows and personal automations.
 
-Every new domain must define ownership, contracts, permissions, retention, provenance, correction and deletion behavior.
+Every new domain must define ownership, contracts, cloud exposure, permissions, retention, provenance, correction and deletion behavior.
 
 ---
 
@@ -339,12 +411,13 @@ Every new domain must define ownership, contracts, permissions, retention, prove
 ```text
 ✅ 0. Architecture and initial contracts
 🟡 1. Verify and merge Windows Core foundation
-⬜ 2. Add local ingestion API
-⬜ 3. Persist events idempotently
-⬜ 4. Build meal projection and history
-⬜ 5. Build Android meal recording
-⬜ 6. Complete Android-to-Core synchronization
-⬜ 7. Add cited retrieval
+⬜ 2. Establish Firebase Auth, Firestore model and Security Rules
+⬜ 3. Build Android meal recording and local event outbox
+⬜ 4. Publish immutable Android events to Firebase
+⬜ 5. Consume and validate Firebase events in Core
+⬜ 6. Persist events idempotently in Core
+⬜ 7. Build meal projection and correction history
+⬜ 8. Add retrieval and cited answers
 ```
 
 ## Working rule
