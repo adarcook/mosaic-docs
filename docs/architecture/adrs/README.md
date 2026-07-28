@@ -1,10 +1,12 @@
 # Architecture Decision Records
 
-## ADR 0001 — Monorepo
+## ADR 0001 — Multi-repository architecture
 
 **Status:** Accepted
 
-Maintain Mosaic Core, shared contracts and domain clients in one monorepo with strict logical boundaries. This reduces contract drift and supports coordinated Python/Kotlin changes while preserving independent deployment.
+Keep Mosaic in separate repositories aligned with independently deployed runtimes and ownership boundaries. The current repositories are `mosaic-core`, `mosaic-server`, `mosaic-android`, `mosaic-contracts` and `mosaic-docs`. Cross-repository compatibility is managed through versioned contracts rather than shared implementation packages.
+
+A monorepo is not the current target. It may be reconsidered only if coordinated changes and duplicated tooling become a persistent, measurable problem.
 
 ## ADR 0002 — Domain applications own operational data
 
