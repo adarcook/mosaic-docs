@@ -31,6 +31,7 @@ It is not a single large application and it is not a foundation model trained fr
 flowchart LR
     subgraph Clients[Domain clients]
         Fit[Mosaic Fit\nAndroid]
+        Inventory[Mosaic Inventory\nAndroid / local service]
         Swim[Mosaic Swim\nAndroid + Wear OS]
         Photos[Mosaic Photos\nLocal UI / CLI]
         Web[Mosaic Console\nWeb / Desktop]
@@ -55,6 +56,7 @@ flowchart LR
     end
 
     Fit --> Gateway
+    Inventory --> Gateway
     Swim --> Gateway
     Photos --> Gateway
     Web --> Gateway
@@ -116,7 +118,13 @@ A provider-neutral interface for local models on the home PC, remote models on t
 
 ### Mosaic Fit
 
-Owns nutrition capture, meal review, daily macro tracking and the mobile experience. It sends normalized nutrition events to Mosaic Core.
+Owns nutrition capture, meal review, daily macro tracking and the mobile experience. It sends normalized nutrition events to Mosaic Core. Meal records contain structured components and may include optional, provenance-backed references to Inventory items.
+
+### Mosaic Inventory
+
+Owns household products and ingredients, stock quantities, purchase and replenishment history, expiry dates, storage locations, unit conversions and stock adjustments. It may consume confirmed meal-component references or explicit consumption requests, but it decides whether and how stock is deducted.
+
+Mosaic Inventory must remain useful independently of Mosaic Fit. Mosaic Fit must not write directly to the Inventory database, and Mosaic Core must not become the canonical stock ledger.
 
 ### Mosaic Swim
 
@@ -128,17 +136,35 @@ Owns photo ingestion, face clustering, labels, image embeddings and local photo 
 
 ### Mosaic Core
 
-Owns cross-domain identity, unified memory, source registry, permissions, retrieval, orchestration and cross-domain insights.
+Owns cross-domain identity, unified memory, source registry, permissions, retrieval, orchestration and cross-domain insights. It stores normalized projections and links between domains, not the operational source of truth for meals, inventory or workouts.
 
-## 6. Typical query flow
+## 6. Cross-domain meal and inventory flow
+
+A confirmed meal may contain components such as chicken, rice and vegetables. Each component can optionally reference an Inventory item with match confidence, preparation state and provenance.
+
+```text
+Mosaic Fit meal component
+→ optional Inventory item match
+→ versioned consumption request
+→ Inventory validation or user confirmation
+→ Inventory-owned stock adjustment
+→ normalized event returned to Mosaic Core
+```
+
+The link is optional because meals may be recorded when no matching Inventory item exists. Automatic stock deduction must not occur when raw-to-cooked conversion, shared portions or match confidence are unresolved.
+
+## 7. Typical query flow
 
 For “Did my nutrition on swimming days affect my evening hunger?” Mosaic authenticates the device, identifies relevant domains, authorizes access, retrieves swim sessions and nutrition records, computes comparable windows, explains the result with uncertainty and citations, and saves a derived insight only when configured or approved.
 
-## 7. Non-goals for Phase 1
+A future query such as “Which ingredients are running low based on this week's meals?” can combine confirmed meal components with Inventory-owned stock records while citing both source domains.
+
+## 8. Non-goals for Phase 1
 
 - autonomous unrestricted agents;
 - replacing all domain databases with one central database;
 - training a personal foundation model;
 - continuous real-time synchronization for every source;
 - a complex multi-user SaaS architecture;
-- automatic destructive actions.
+- automatic destructive actions;
+- fully automatic stock deduction from meal estimates.
