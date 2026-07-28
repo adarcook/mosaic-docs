@@ -6,7 +6,9 @@ Architecture documentation for the Mosaic personal intelligence platform.
 
 Mosaic is a local-first personal intelligence layer that runs primarily on the user's home computer. It indexes and connects information from multiple life domains, maintains a unified memory and data model, and exposes cited, permission-aware answers and insights.
 
-Domain applications such as Mosaic Fit, Mosaic Swim, and Mosaic Photos remain independent clients/services. They own their domain workflows and synchronize selected events and records with Mosaic Core.
+Domain applications such as Mosaic Fit, Mosaic Inventory, Mosaic Swim and Mosaic Photos remain independent domain clients or services. They own their operational workflows and synchronize selected events and records with Mosaic Core.
+
+Mosaic Inventory is responsible for household products, ingredients, stock quantities, purchases, expiry dates and stock adjustments. Meal records from Mosaic Fit may reference Inventory items, but Inventory remains the owner of stock deduction decisions.
 
 ## Documents
 
