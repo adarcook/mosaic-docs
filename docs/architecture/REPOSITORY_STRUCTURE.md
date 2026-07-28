@@ -1,61 +1,86 @@
 # Repository Structure
 
-## Recommended monorepo
+## Recommended multi-repository structure
+
+Mosaic should continue using separate repositories for independently deployed platforms and services. The repository boundary reflects ownership, runtime, release cadence and technology rather than forcing all code into one build system.
 
 ```text
-mosaic/
-├── apps/
-│   ├── core-api/              # FastAPI gateway and query API
-│   ├── core-worker/           # ingestion, enrichment and scheduled jobs
-│   ├── console/               # local web/desktop management UI
-│   ├── fit-android/           # nutrition and fitness client
-│   ├── swim-android/          # phone application
-│   ├── swim-wear/             # Wear OS application
-│   └── photos/                # local photo search UI and CLI
-├── packages/
-│   ├── contracts/             # versioned API/event schemas
-│   ├── domain-model/          # shared conceptual model
-│   ├── python-sdk/            # generated or handwritten Python client
-│   ├── kotlin-sdk/            # generated Kotlin models/client
-│   ├── model-gateway/         # local, VPS and cloud model adapters
-│   ├── retrieval/             # hybrid search interfaces
-│   ├── policy/                # permissions and data classification
-│   └── observability/         # logs, traces and audit helpers
-├── services/
-│   ├── postgres/
-│   ├── object-store/
-│   └── queue/
-├── infra/
-│   ├── compose/
-│   ├── home-node/
-│   └── vps/
-├── docs/
-│   ├── architecture/
-│   ├── adrs/
-│   └── operations/
-└── tools/
-    ├── migrations/
-    ├── codegen/
-    └── development/
+adarcook/
+├── mosaic-core/         # Local personal-intelligence layer on the home computer
+├── mosaic-server/       # VPS-facing APIs, remote jobs and synchronization services
+├── mosaic-android/      # Android domain application and future Wear OS modules
+├── mosaic-contracts/    # Versioned API schemas, event schemas and generated models
+└── mosaic-docs/         # Architecture, ADRs, roadmap and operational documentation
 ```
+
+Additional domain repositories can be added when they become real deployable products, for example `mosaic-photos` or a dedicated swimming application. They should not be split merely to create conceptual boundaries; a new repository is justified by an independent runtime, release lifecycle or substantial domain ownership.
+
+## Repository responsibilities
+
+### `mosaic-core`
+
+- Runs primarily on the home computer.
+- Owns ingestion, indexing, retrieval, unified memory and cross-domain reasoning.
+- Stores normalized projections and provenance without taking over domain workflows.
+- Exposes local query, administration and synchronization interfaces.
+
+### `mosaic-server`
+
+- Runs on the VPS.
+- Handles authenticated remote access, temporary compute jobs and synchronization when the home node is unavailable.
+- Must not become the canonical store for unrestricted personal data.
+- Communicates through contracts published by `mosaic-contracts`.
+
+### `mosaic-android`
+
+- Owns Android user workflows such as nutrition capture, fitness records and device integration.
+- Keeps operational domain data locally where appropriate.
+- Sends confirmed records or events rather than exposing its database directly.
+- May contain multiple Gradle modules for phone, Wear OS and shared Android code.
+
+### `mosaic-contracts`
+
+- Is the source of truth for API and event compatibility.
+- Contains versioned OpenAPI, JSON Schema or Protocol Buffer definitions.
+- Publishes or generates Kotlin and Python models when useful.
+- Defines compatibility rules and deprecation policy.
+
+### `mosaic-docs`
+
+- Holds architecture documents, ADRs, diagrams, roadmap and operational runbooks.
+- Documents decisions that affect more than one repository.
+- Links implementation work across repositories without owning executable code.
 
 ## Dependency rules
 
-- Domain applications may depend on contracts and generated SDKs, not on Core implementation packages.
-- Core services may depend on domain-neutral packages but not Android UI modules.
-- Domain-specific analysis stays inside its domain package unless it is genuinely reusable.
-- Model providers are accessed only through the model gateway.
-- Persistence implementations sit behind repository interfaces.
-- Cross-domain reads happen through Mosaic Core projections and source references.
+- Domain applications depend on versioned contracts, never on Mosaic Core implementation code.
+- Mosaic Core and Mosaic Server do not import Android modules.
+- Cross-repository communication uses documented APIs and events rather than shared database access.
+- Domain-specific analysis remains in its owning repository unless it becomes a stable, reusable service.
+- Model providers are accessed through explicit adapters in the repository that executes the request.
+- Every synchronized record carries source, version, timestamps and provenance.
 
-## Why a monorepo
+## Coordinating changes across repositories
 
-The project is primarily developed by one person and coordinated changes across Python, Kotlin, schemas and documentation are frequent. A monorepo reduces contract drift, enables end-to-end validation and still permits independent deployment.
+A contract change normally follows this order:
 
-## Build and CI
+1. Propose and review the schema change in `mosaic-contracts`.
+2. Publish a backward-compatible contract version or generated models.
+3. Update consumers such as `mosaic-server`, `mosaic-core` and `mosaic-android` in separate PRs.
+4. Deploy consumers before removing deprecated fields or event versions.
+5. Record major cross-repository decisions in `mosaic-docs`.
 
-CI should detect changed paths and run only relevant checks while always validating shared contracts. Recommended checks include schema compatibility, Python tests and linting, Android unit tests, migration validation, Mermaid/Markdown link checks and container builds for changed services.
+For early development, contracts may be consumed by Git commit or local checkout. Once releases stabilize, use tagged versions and automated dependency updates.
 
-## Migration path
+## CI expectations
 
-The existing repositories can be imported gradually with preserved history. During transition, `mosaic-contracts` remains the source of truth until its schemas move under `packages/contracts`; applications can continue releasing independently.
+Each repository owns its own tests and deployment pipeline. In addition:
+
+- `mosaic-contracts` validates schemas and backward compatibility.
+- Consumer repositories run contract tests against their pinned contract version.
+- End-to-end tests may use a small orchestration repository or CI workflow, but production code remains in its owning repository.
+- Documentation checks validate Markdown links and Mermaid diagrams in `mosaic-docs`.
+
+## Why multi-repo fits Mosaic now
+
+The existing repositories already map cleanly to separate runtimes: home computer, VPS, Android and shared contracts. Keeping these boundaries avoids a disruptive migration, allows independent releases and makes privacy and deployment responsibilities explicit. A monorepo can be reconsidered later only if coordinated changes and duplicated tooling become a persistent cost that outweighs these benefits.
