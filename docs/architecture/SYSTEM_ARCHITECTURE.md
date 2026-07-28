@@ -2,169 +2,322 @@
 
 ## 1. Purpose
 
-Mosaic is a personal intelligence platform designed to create a reliable, private and explainable view across the user's information.
+Mosaic is a local-first personal intelligence platform that creates a reliable, private and explainable view across the user's information.
 
-It is not a single large application and it is not a foundation model trained from scratch. It is an orchestration and knowledge layer built around:
+It is not a single large application and it is not a foundation model trained from scratch. It is a system built around:
 
-- domain-owned applications and data;
-- structured personal memory;
-- document and media indexing;
-- retrieval-augmented generation;
-- tools and workflows;
-- permissions, provenance and citations;
-- local-first storage with optional remote compute.
+- domain-owned applications and local data;
+- versioned immutable events;
+- asynchronous synchronization through Firebase;
+- durable local storage and projections in Mosaic Core;
+- scheduled analysis and proactive Insights;
+- permissions, provenance and evidence;
+- optional remote compute for narrowly defined tasks.
+
+Mosaic Core is primarily an asynchronous personal-intelligence engine. It is not required to be an always-online conversational server.
 
 ## 2. Architectural principles
 
-1. **Local-first** — canonical personal data is stored on user-controlled devices whenever practical.
-2. **Domain ownership** — each domain app owns its operational data and user experience.
-3. **Mosaic as integration layer** — Mosaic Core indexes, links and reasons across domains without replacing them.
-4. **Evidence before inference** — every derived answer should retain source references and confidence.
-5. **Structured memory before prompt stuffing** — stable facts, events, entities and relationships are stored explicitly.
-6. **Replaceable models** — model providers and embedding models are adapters, not architectural dependencies.
-7. **Asynchronous ingestion** — indexing and enrichment are background jobs, separated from interactive queries.
-8. **Least privilege** — connectors and agents receive only the permissions required for the current operation.
+1. **Local-first intelligence** — durable personal history, projections and cross-domain intelligence live on the user-controlled home computer.
+2. **Domain ownership** — each domain app owns its operational records and user experience.
+3. **Immediate mobile utility** — deterministic daily calculations are performed from local Android data and do not depend on Core availability.
+4. **Asynchronous Core** — Core synchronizes, catches up and analyzes when the home computer is available.
+5. **Immutable synchronization events** — corrections create new revisions instead of overwriting historical events.
+6. **Durable Insights before notifications** — an Insight is stored before any push signal is sent.
+7. **Evidence before inference** — every derived Insight retains source references, assumptions and confidence where applicable.
+8. **Replaceable infrastructure** — Firebase, model providers and optional VPS workers are adapters with explicit boundaries.
+9. **Least privilege and user isolation** — every cloud and local record is user-scoped and access is explicitly authorized.
+10. **Notifications are selective** — FCM is a user-controlled signal, not the source of truth and not a delivery guarantee.
 
 ## 3. High-level topology
 
 ```mermaid
 flowchart LR
-    subgraph Clients[Domain clients]
-        Fit[Mosaic Fit\nAndroid]
-        Inventory[Mosaic Inventory\nAndroid / local service]
-        Swim[Mosaic Swim\nAndroid + Wear OS]
-        Photos[Mosaic Photos\nLocal UI / CLI]
-        Web[Mosaic Console\nWeb / Desktop]
+    subgraph Mobile[Android device]
+        UI[Mosaic Android UI]
+        Room[(Room domain data)]
+        Calc[Local calculations]
+        Outbox[Immutable event outbox]
+        Inbox[Insight inbox]
     end
 
-    subgraph Home[Home computer]
-        Gateway[Mosaic API Gateway]
-        Orchestrator[Query & Tool Orchestrator]
-        Memory[Personal Memory Service]
-        Ingestion[Ingestion & Enrichment Workers]
-        Search[Hybrid Retrieval]
-        Policy[Permissions & Policy Engine]
-        SQL[(PostgreSQL / SQLite)]
-        Vector[(Vector Index)]
-        Objects[(Local Object Store)]
-        Queue[(Job Queue)]
+    subgraph Firebase[Firebase cloud boundary]
+        Auth[Firebase Authentication]
+        Events[(Firestore user events)]
+        Insights[(Firestore user Insights)]
+        Devices[(Device registrations and preferences)]
+        FCM[Firebase Cloud Messaging]
     end
 
-    subgraph Optional[Optional remote compute]
-        VPS[VPS Worker]
-        CloudLLM[Cloud Model APIs]
+    subgraph Home[Mosaic Core on Windows 11]
+        Consumer[Firebase event consumer]
+        Validator[Contract validation]
+        EventStore[(Local durable event store)]
+        Projection[Domain projections and history]
+        Analysis[Scheduled analysis engine]
+        Evidence[Evidence and provenance]
+        Publisher[Insight publisher]
     end
 
-    Fit --> Gateway
-    Inventory --> Gateway
-    Swim --> Gateway
-    Photos --> Gateway
-    Web --> Gateway
+    subgraph Optional[Optional remote services]
+        VPS[VPS workers]
+        CloudModels[Selected cloud model APIs]
+    end
 
-    Gateway --> Policy
-    Gateway --> Orchestrator
-    Orchestrator --> Search
-    Orchestrator --> Memory
-    Search --> SQL
-    Search --> Vector
-    Ingestion --> SQL
-    Ingestion --> Vector
-    Ingestion --> Objects
-    Ingestion --> Queue
-    Queue --> Ingestion
+    UI --> Room
+    Room --> Calc
+    Room --> Outbox
+    UI --> Auth
+    Outbox --> Events
 
-    Orchestrator -. selected tasks .-> VPS
-    Orchestrator -. optional inference .-> CloudLLM
-    Ingestion -. heavy enrichment .-> VPS
+    Events --> Consumer
+    Consumer --> Validator
+    Validator --> EventStore
+    EventStore --> Projection
+    Projection --> Analysis
+    Evidence --> Analysis
+    Analysis --> Publisher
+    Publisher --> Insights
+
+    Insights --> Inbox
+    Publisher -. notification request .-> FCM
+    Devices --> FCM
+    FCM -. lightweight signal .-> UI
+
+    Analysis -. selected inference .-> CloudModels
+    Analysis -. selected heavy task .-> VPS
 ```
 
-## 4. Core components
+## 4. Component responsibilities
 
-### 4.1 API Gateway
+### 4.1 Mosaic Android
 
-A Python/FastAPI service that provides authentication and device identity, versioned REST endpoints, request validation, synchronization idempotency and optional progress streams.
+Mosaic Android is the operational client and remains useful offline.
 
-### 4.2 Query and Tool Orchestrator
+It owns:
 
-Classifies requests, builds execution plans, retrieves evidence, calls permitted tools, invokes a selected model, validates and cites results, and writes approved memories.
+- Room entities for meals, measurements, workouts, Inventory and other mobile domains;
+- local creation, correction and display workflows;
+- immediate deterministic calculations such as daily protein totals and remaining target amounts;
+- stable aggregate IDs and revisions;
+- an immutable, retry-safe event outbox;
+- the local Insight inbox and notification preferences.
 
-The orchestrator uses typed service interfaces and the policy engine rather than directly accessing arbitrary storage.
+Android does not need Core to answer simple questions that can be calculated from current local records.
 
-### 4.3 Personal Memory Service
+### 4.2 Firebase Authentication
 
-Stores durable profile facts, preferences, constraints, entities, relationships, dated events, goals, observations, summaries and source-backed insights. Every memory includes provenance, confidence, timestamps and visibility scope.
+Firebase Authentication provides user identity and a stable `uid` for Android access. It establishes the initial multi-user boundary without making Mosaic Core publicly reachable.
 
-### 4.4 Ingestion and Enrichment Pipeline
+### 4.3 Cloud Firestore event relay
 
-1. Receive or discover a source item.
-2. Calculate content identity and deduplicate.
-3. Extract text and metadata.
-4. Normalize into the unified model.
-5. Split into retrieval units.
-6. Create embeddings.
-7. Enrich with entities, labels and relationships.
-8. Store provenance and access policy.
-9. Publish indexing status.
+Firestore provides an always-available rendezvous point between Android and Core.
 
-### 4.5 Hybrid Retrieval
+Suggested event path:
 
-Combines metadata filters, relational queries, full-text search, vector similarity, recency and importance scoring, domain-aware reranking and relationship traversal. Retrieval returns evidence objects with resolvable citations.
+```text
+users/{uid}/events/{eventId}
+```
 
-### 4.6 Model Gateway
+Its responsibilities are limited to:
 
-A provider-neutral interface for local models on the home PC, remote models on the VPS, selected cloud APIs, embeddings, rerankers and vision models. Routing considers privacy, latency, capability, availability and cost.
+- buffering immutable domain events while Core is offline;
+- separating user data by authenticated identity;
+- supporting mobile offline writes and retry;
+- storing limited device and synchronization metadata.
+
+Firestore is not the canonical long-term intelligence database.
+
+### 4.4 Mosaic Core event consumer
+
+The Core consumer runs on the Windows 11 home computer and processes events only for explicitly configured users.
+
+It:
+
+1. reads missing Firebase events;
+2. validates event envelopes and payloads against the pinned `mosaic-contracts` submodule;
+3. rejects malformed or unsupported versions;
+4. deduplicates using stable `eventId` values;
+5. stores accepted events locally with owner and source metadata;
+6. updates projections and correction history;
+7. records consumer checkpoints for efficiency without treating checkpoints as the correctness boundary.
+
+### 4.5 Local event store and projections
+
+The local event store preserves the exact accepted event, ownership, producer device, timestamps and provenance.
+
+Projections provide usable current views while retaining history, for example:
+
+- the latest meal revision;
+- earlier meal corrections;
+- daily and weekly nutrition totals;
+- Inventory-owned stock state;
+- swimming sessions and derived training metrics.
+
+Core does not replace the operational Room databases, but it owns the durable cross-domain view.
+
+### 4.6 Scheduled analysis engine
+
+The analysis engine is catch-up safe and runs when Core is available.
+
+Initial cadence:
+
+- on Core startup: synchronize missing events and complete pending work;
+- periodically: update projections and lightweight derived metrics;
+- weekly: generate summaries, detected patterns and recommendation candidates.
+
+The engine combines structured queries, calculations and optional model inference. It must distinguish stored facts, deterministic calculations and inferred conclusions.
+
+### 4.7 Insight publisher
+
+An Insight is a durable user-scoped result generated by Core.
+
+Suggested path:
+
+```text
+users/{uid}/insights/{insightId}
+```
+
+An Insight may include:
+
+- type and schema version;
+- title and concise summary;
+- detailed content;
+- severity or notification eligibility;
+- evidence references;
+- generated time and covered period;
+- assumptions and confidence;
+- read, dismissed or archived state.
+
+The Insight is written to Firestore before any notification is attempted.
+
+### 4.8 Firebase Cloud Messaging
+
+FCM provides a lightweight signal that a new Insight is available.
+
+The message contains only minimal routing data, such as:
+
+```json
+{
+  "insightId": "insight-id",
+  "destination": "insight-detail"
+}
+```
+
+FCM must not contain the full sensitive analysis, and notification delivery is not required for correctness. Android synchronizes the Insight inbox independently, so a missed push does not lose the result.
+
+Notification dispatch respects:
+
+- per-category opt-in;
+- quiet hours;
+- frequency limits;
+- device registration state;
+- duplicate suppression;
+- privacy-safe preview text.
 
 ## 5. Domain boundaries
 
-### Mosaic Fit
+### Mosaic nutrition and fitness domain
 
-Owns nutrition capture, meal review, daily macro tracking and the mobile experience. It sends normalized nutrition events to Mosaic Core. Meal records contain structured components and may include optional, provenance-backed references to Inventory items.
+Owns meal capture, corrections, daily targets, measurements and the mobile dashboard. Daily totals and remaining targets are calculated locally in Android.
 
 ### Mosaic Inventory
 
-Owns household products and ingredients, stock quantities, purchase and replenishment history, expiry dates, storage locations, unit conversions and stock adjustments. It may consume confirmed meal-component references or explicit consumption requests, but it decides whether and how stock is deducted.
-
-Mosaic Inventory must remain useful independently of Mosaic Fit. Mosaic Fit must not write directly to the Inventory database, and Mosaic Core must not become the canonical stock ledger.
+Owns products, stock quantities, purchases, expiry dates, conversions and final stock adjustments. Nutrition events may request consumption, but they do not directly mutate Inventory-owned state.
 
 ### Mosaic Swim
 
-Owns workout plans, Wear OS recording, session details and swimming-specific analysis. It sends workouts, metrics and summaries to Mosaic Core.
+Owns workout planning, Wear OS recording and swimming-specific operational data. Core may later combine these events with nutrition and measurements to generate weekly Insights.
 
 ### Mosaic Photos
 
-Owns photo ingestion, face clustering, labels, image embeddings and local photo search. Mosaic Core receives references, entities and searchable metadata rather than duplicating the full media library.
+Owns local media ingestion, face clustering and photo search. Core receives selected metadata, entities and evidence references rather than duplicating the complete library by default.
 
 ### Mosaic Core
 
-Owns cross-domain identity, unified memory, source registry, permissions, retrieval, orchestration and cross-domain insights. It stores normalized projections and links between domains, not the operational source of truth for meals, inventory or workouts.
+Owns accepted cross-domain event history, local projections, provenance, scheduled analysis and proactive Insights. It does not need to serve remote interactive questions continuously.
 
-## 6. Cross-domain meal and inventory flow
+## 6. Primary data flows
 
-A confirmed meal may contain components such as chicken, rice and vegetables. Each component can optionally reference an Inventory item with match confidence, preparation state and provenance.
+### 6.1 Android-to-Core event flow
 
 ```text
-Mosaic Fit meal component
-→ optional Inventory item match
-→ versioned consumption request
-→ Inventory validation or user confirmation
-→ Inventory-owned stock adjustment
-→ normalized event returned to Mosaic Core
+User records or corrects data in Android
+→ Room transaction updates operational state
+→ immutable event is added to the local outbox
+→ Android publishes the event to the user's Firestore path
+→ Core later downloads and validates the event
+→ Core stores it idempotently
+→ projections and history are updated
 ```
 
-The link is optional because meals may be recorded when no matching Inventory item exists. Automatic stock deduction must not occur when raw-to-cooked conversion, shared portions or match confidence are unresolved.
+### 6.2 Immediate local calculation flow
 
-## 7. Typical query flow
+```text
+User opens the daily dashboard
+→ Android queries Room
+→ deterministic totals are calculated locally
+→ current protein, calories and remaining targets are displayed immediately
+```
 
-For “Did my nutrition on swimming days affect my evening hunger?” Mosaic authenticates the device, identifies relevant domains, authorizes access, retrieves swim sessions and nutrition records, computes comparable windows, explains the result with uncertainty and citations, and saves a derived insight only when configured or approved.
+This flow works without Firebase connectivity and while the home computer is off.
 
-A future query such as “Which ingredients are running low based on this week's meals?” can combine confirmed meal components with Inventory-owned stock records while citing both source domains.
+### 6.3 Passive Insight flow
 
-## 8. Non-goals for Phase 1
+```text
+Core starts or reaches a scheduled analysis window
+→ missing events are synchronized
+→ projections are updated
+→ evidence-backed weekly analysis runs
+→ a durable Insight is written to Firestore
+→ eligible Insight triggers an FCM signal
+→ Android receives or later synchronizes the Insight
+→ the user opens the full Insight from the inbox
+```
 
-- autonomous unrestricted agents;
-- replacing all domain databases with one central database;
-- training a personal foundation model;
-- continuous real-time synchronization for every source;
-- a complex multi-user SaaS architecture;
-- automatic destructive actions;
-- fully automatic stock deduction from meal estimates.
+## 7. Example first useful outcome
+
+Android immediately displays:
+
+> 108 g protein recorded today; 22 g remain to reach the configured target.
+
+After a weekly Core run, Mosaic may publish:
+
+> You reached your protein target on 5 of 7 days. Both missed days followed swimming sessions, and most of the shortfall occurred at dinner.
+
+The weekly Insight links to the exact meal and workout records used. The user can receive a notification that the summary is ready, but the summary remains available even if the notification is never delivered.
+
+## 8. Multiple users and households
+
+Every cloud event, Insight, device registration and local accepted event carries an owner identity.
+
+The first installation may support one configured Firebase user, but the architecture must avoid global unscoped collections. A later household Core may process several authorized users while preserving:
+
+- separate permissions;
+- separate notification preferences;
+- user-specific evidence and Insights;
+- explicit rules for shared household domains such as Inventory.
+
+## 9. Optional interactive access
+
+Interactive question answering is deferred and optional.
+
+Possible future modes include:
+
+- local questions while the user is on the home network and Core is available;
+- a limited cloud service for approved question types;
+- on-device natural-language interpretation backed by local Room calculations.
+
+None of these are required for the first useful Mosaic experience.
+
+## 10. Non-goals for the first passive slice
+
+- exposing Mosaic Core as a public internet server;
+- requiring the phone and home computer to be online simultaneously;
+- using FCM as persistent storage or a guaranteed queue;
+- storing the entire personal-intelligence database in Firestore;
+- unrestricted autonomous agents;
+- fully automatic destructive actions;
+- automatic stock deduction from uncertain meal estimates;
+- complex multi-tenant SaaS administration;
+- real-time model-backed conversation from every location.
