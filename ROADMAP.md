@@ -5,8 +5,8 @@ This roadmap defines the order in which Mosaic will be built. Each stage has a c
 ## Status legend
 
 - ✅ **Complete** — the required work has been verified and merged into the relevant repository's `main` branch.
-- 🟡 **In review / verification** — implementation exists in an open PR or still requires local verification.
-- ⬜ **Not started** — no completed implementation has been merged into `main`.
+- 🟡 **Partial / verification required** — relevant implementation exists, but the stage completion gate has not been verified end to end.
+- ⬜ **Not started** — no implementation that materially advances the stage completion gate has been verified in `main`.
 
 ## Product direction
 
@@ -45,12 +45,16 @@ See:
 
 ## Current status
 
+_Last re-baselined against the five repositories on 2026-08-13._
+
+Status tracks stage completion gates, not merely the presence of code. A capability may exist in `main` while its stage remains 🟡 until local verification, integration and the documented completion gate succeed.
+
 | Stage | Status | Notes |
 |---|---|---|
 | 0. Architecture and initial contracts | ✅ Complete | Initial architecture and Phase 1 contracts are merged into `main`. |
-| 1. Windows Core foundation | 🟡 In review / verification | Implemented in `mosaic-core` PR #1; awaiting Windows 11 verification and merge. |
+| 1. Windows Core foundation | 🟡 Partial / verification required | Foundation is merged into `mosaic-core/main`; clean Windows 11 verification is still required. |
 | 2. Firebase identity and relay foundation | ⬜ Not started | Firebase project, Auth, Firestore paths, Rules and emulator tests. |
-| 3. Android meal recording and local dashboard | ⬜ Not started | Room models, manual meals, daily totals and remaining-goal calculations. |
+| 3. Android meal recording and local dashboard | 🟡 Partial / verification required | Android contains Room and nutrition UI foundations in `main`; the full offline record/correct/restart completion gate is not yet verified. |
 | 4. Android event outbox and Firebase publishing | ⬜ Not started | Immutable contract events, offline queue and authenticated publishing. |
 | 5. Core Firebase consumer and contract validation | ⬜ Not started | Core reads configured users and validates downloaded events locally. |
 | 6. Durable local event storage | ⬜ Not started | Idempotent event store, ownership, provenance and recovery. |
@@ -58,15 +62,15 @@ See:
 | 8. Scheduled analysis and Insight generation | ⬜ Not started | Weekly, catch-up-safe, evidence-backed summaries and patterns. |
 | 9. Insight synchronization and Android inbox | ⬜ Not started | Durable Core-to-Android Insight delivery through Firestore. |
 | 10. FCM notification delivery | ⬜ Not started | Selective push signals, device registration and user preferences. |
-| 11. Meal analysis assistance | ⬜ Not started | Added only after manual recording and the passive loop are reliable. |
+| 11. Meal analysis assistance | 🟡 Partial / deferred | `mosaic-server/main` contains a tested meal-analysis API, but the confirmed-record flow is not complete and this stage remains deferred behind the passive loop. |
 | 12. Inventory module inside Android | ⬜ Not started | Uses the integration boundary established by meal contracts. |
-| 13. Fitness and swimming domains | ⬜ Not started | Reuses the event, analysis, Insight and notification pattern. |
+| 13. Fitness and swimming domains | 🟡 Partial / deferred | Android training foundations exist in `main`; the cross-domain event, analysis and Insight completion gate is not implemented. |
 | 14. Optional VPS services | ⬜ Not started | Added only for capabilities Android, Firebase and Core do not cover. |
 | 15. Broader personal intelligence | ⬜ Not started | Photos, documents, projects and controlled automations. |
 
 ## Current focus
 
-> Verify the Windows 11 Core foundation locally, merge it into `main`, then establish the Firebase development environment and security boundary.
+> Verify the merged Windows 11 Core foundation locally, establish shared quality gates, then complete the smallest nutrition vertical slice from Android event outbox through Core storage and a basic weekly Insight.
 
 ---
 
@@ -101,7 +105,7 @@ A meal record and event batch can be represented in implementation-neutral JSON 
 
 ---
 
-## Stage 1 — Windows Core foundation — 🟡 In review / verification
+## Stage 1 — Windows Core foundation — 🟡 Partial / verification required
 
 ### Goal
 
@@ -126,7 +130,7 @@ On the home computer, a clean clone with submodules can run the setup script, lo
 
 ### Current state
 
-Implementation exists in `mosaic-core` PR #1. This stage becomes ✅ **Complete** only after the Windows 11 check succeeds and the PR is merged into `main`.
+The foundation from `mosaic-core` PR #1 is merged into `main`. This stage becomes ✅ **Complete** only after the clean Windows 11 completion check succeeds. Merge state and runtime verification are tracked separately.
 
 ---
 
@@ -503,16 +507,17 @@ Every new domain must define ownership, contracts, cloud exposure, permissions, 
 
 ```text
 ✅ 0. Architecture and initial contracts
-🟡 1. Verify and merge Windows Core foundation
-⬜ 2. Establish Firebase Auth, Firestore paths and Security Rules
-⬜ 3. Build Android meal recording and immediate local calculations
-⬜ 4. Build the Android event outbox and Firebase publishing
-⬜ 5. Consume and validate Firebase events in Core
-⬜ 6. Persist events idempotently in Core
-⬜ 7. Build meal projection and correction history
-⬜ 8. Generate a weekly evidence-backed Insight
-⬜ 9. Synchronize the Insight to the Android inbox
-⬜ 10. Signal the Insight selectively through FCM
+🟡 1. Verify the merged Windows Core foundation on Windows 11
+⬜ 2. Add repository quality gates for Core, Contracts and Android tests
+⬜ 3. Establish Firebase Auth, Firestore paths and Security Rules
+🟡 4. Complete and verify Android meal recording and immediate local calculations
+⬜ 5. Build the Android event outbox and Firebase publishing
+⬜ 6. Consume and validate Firebase events in Core
+⬜ 7. Persist events idempotently in Core
+⬜ 8. Build meal projection and correction history
+⬜ 9. Generate a weekly evidence-backed Insight
+⬜ 10. Synchronize the Insight to the Android inbox
+⬜ 11. Signal the Insight selectively through FCM
 ```
 
 ## First useful product milestone
