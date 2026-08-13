@@ -164,7 +164,7 @@ Two test users are isolated by Rules, authenticated clients can access only thei
 
 ---
 
-## Stage 3 — Android meal recording and local dashboard — ⬜ Not started
+## Stage 3 — Android meal recording and local dashboard — 🟡 Partial / verification required
 
 ### Goal
 
@@ -398,7 +398,7 @@ A durable weekly Insight triggers at most one allowed notification per registere
 
 ---
 
-## Stage 11 — Meal analysis assistance — ⬜ Not started
+## Stage 11 — Meal analysis assistance — 🟡 Partial / deferred
 
 ### Goal
 
@@ -441,7 +441,7 @@ A confirmed meal may request consumption from a linked item, uncertain conversio
 
 ---
 
-## Stage 13 — Fitness and swimming domains — ⬜ Not started
+## Stage 13 — Fitness and swimming domains — 🟡 Partial / deferred
 
 ### Goal
 
@@ -508,16 +508,16 @@ Every new domain must define ownership, contracts, cloud exposure, permissions, 
 ```text
 ✅ 0. Architecture and initial contracts
 🟡 1. Verify the merged Windows Core foundation on Windows 11
-⬜ 2. Add repository quality gates for Core, Contracts and Android tests
-⬜ 3. Establish Firebase Auth, Firestore paths and Security Rules
-🟡 4. Complete and verify Android meal recording and immediate local calculations
-⬜ 5. Build the Android event outbox and Firebase publishing
-⬜ 6. Consume and validate Firebase events in Core
-⬜ 7. Persist events idempotently in Core
-⬜ 8. Build meal projection and correction history
-⬜ 9. Generate a weekly evidence-backed Insight
-⬜ 10. Synchronize the Insight to the Android inbox
-⬜ 11. Signal the Insight selectively through FCM
+⬜ Q. Add repository quality gates for Core, Contracts and Android tests
+⬜ 2. Establish Firebase Auth, Firestore paths and Security Rules
+🟡 3. Complete and verify Android meal recording and immediate local calculations
+⬜ 4. Build the Android event outbox and Firebase publishing
+⬜ 5. Consume and validate Firebase events in Core
+⬜ 6. Persist events idempotently in Core
+⬜ 7. Build meal projection and correction history
+⬜ 8. Generate a weekly evidence-backed Insight
+⬜ 9. Synchronize the Insight to the Android inbox
+⬜ 10. Signal the Insight selectively through FCM
 ```
 
 ## First useful product milestone
