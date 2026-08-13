@@ -122,7 +122,7 @@ Inventory owns stock levels, purchases, expiry dates, conversions and final dedu
 - Inventory consumption-request schema;
 - valid examples and schema validation.
 
-### 2. Windows Core foundation — 🟡 current verification milestone
+### 2. Windows Core foundation — 🟡 merged; runtime verification pending
 
 - contracts Git submodule;
 - PowerShell setup and validation scripts;
@@ -130,6 +130,8 @@ Inventory owns stock levels, purchases, expiry dates, conversions and final dedu
 - schema loader and resource registry;
 - event-type/version registry;
 - contract tests and clear missing-submodule errors.
+
+The foundation is merged into `mosaic-core/main`. A clean run of the documented setup and validation flow on the Windows 11 home computer is still required before this milestone is marked complete.
 
 ### 3. Firebase identity and security foundation
 
