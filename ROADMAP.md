@@ -5,7 +5,7 @@ This roadmap defines the order in which Mosaic will be built. Each stage has a c
 ## Status legend
 
 - ✅ **Complete** — the required work has been verified and merged into the relevant repository's `main` branch.
-- 🟡 **Partial / verification required** — relevant implementation exists, but the stage completion gate has not been verified end to end.
+- 🟡 **Partial / verification required** — relevant implementation exists in `main` or an open PR, but the stage completion gate has not been verified and merged end to end.
 - ⬜ **Not started** — no implementation that materially advances the stage completion gate has been verified in `main`.
 
 ## Product direction
@@ -14,16 +14,19 @@ Mosaic is not initially an always-available conversational server.
 
 ```text
 Immediate local experience
-Android Room + deterministic calculations
+Android Room
+  ├── manual capture and correction
+  ├── deterministic calculations and goals
+  └── optional on-device model assistance
 
 Asynchronous intelligence
-Android events
+Android confirmed events
     ↓
 Firebase Auth + Firestore event relay
     ↓
 Mosaic Core on Windows 11
     ↓
-periodic analysis and durable Insights
+periodic / catch-up deep analysis and durable Insights
     ↓
 Firestore Insight inbox
     ↓
@@ -32,37 +35,42 @@ FCM notification signal
 Android displays the Insight
 ```
 
-Android answers immediate questions that depend only on local structured data, such as today's protein total and the remaining amount toward a configured goal.
+Android owns the immediate operational experience. Meal recording, correction, daily calorie/protein totals and remaining-goal calculations must work while Firebase is unavailable and the home computer is off.
 
-Core performs deeper analysis when the home computer is available. Its initial user-facing outputs are weekly summaries, detected patterns and recommendation candidates rather than remote conversational answers.
+Photo-assisted meal analysis is an optional capture aid. The preferred production direction is a replaceable on-device analyzer on capable Android hardware. Model output remains an estimate until the user confirms or corrects it; only confirmed structured meal data becomes trusted history.
+
+Core performs deeper historical and cross-domain analysis when the home computer is available. Its initial user-facing outputs are weekly summaries, detected patterns and recommendation candidates rather than remote conversational answers or an always-on meal-analysis endpoint.
 
 Firebase provides identity, asynchronous synchronization and notification delivery. It does not replace local Core storage, `mosaic-contracts`, Android Room or the durable Insight records stored before an FCM signal is sent.
 
 See:
 
+- [`docs/architecture/SYSTEM_ARCHITECTURE.md`](docs/architecture/SYSTEM_ARCHITECTURE.md)
 - [`docs/architecture/FIREBASE_SYNC.md`](docs/architecture/FIREBASE_SYNC.md)
 - [`docs/architecture/PASSIVE_INTELLIGENCE.md`](docs/architecture/PASSIVE_INTELLIGENCE.md)
+- [`docs/architecture/API_AND_EVENTS.md`](docs/architecture/API_AND_EVENTS.md)
+- [`docs/architecture/SECURITY.md`](docs/architecture/SECURITY.md)
 
 ## Current status
 
-_Last re-baselined against the five repositories on 2026-08-13._
+_Last re-baselined against the five repositories on 2026-09-06._
 
-Status tracks stage completion gates, not merely the presence of code. A capability may exist in `main` while its stage remains 🟡 until local verification, integration and the documented completion gate succeed.
+Status tracks completion gates, not merely the presence of code. Open PR work remains work in progress even when CI or device smoke testing succeeds.
 
 | Stage | Status | Notes |
 |---|---|---|
 | 0. Architecture and initial contracts | ✅ Complete | Initial architecture and Phase 1 contracts are merged into `main`. |
-| 1. Windows Core foundation | 🟡 Partial / verification required | Foundation is merged into `mosaic-core/main`; clean Windows 11 verification is still required. |
-| 2. Firebase identity and relay foundation | ⬜ Not started | Firebase project, Auth, Firestore paths, Rules and emulator tests. |
-| 3. Android meal recording and local dashboard | 🟡 Partial / verification required | Android contains Room and nutrition UI foundations in `main`; the full offline record/correct/restart completion gate is not yet verified. |
-| 4. Android event outbox and Firebase publishing | ⬜ Not started | Immutable contract events, offline queue and authenticated publishing. |
-| 5. Core Firebase consumer and contract validation | ⬜ Not started | Core reads configured users and validates downloaded events locally. |
-| 6. Durable local event storage | ⬜ Not started | Idempotent event store, ownership, provenance and recovery. |
-| 7. Meal projection and correction history | ⬜ Not started | Current meal view with retained revisions and source links. |
-| 8. Scheduled analysis and Insight generation | ⬜ Not started | Weekly, catch-up-safe, evidence-backed summaries and patterns. |
-| 9. Insight synchronization and Android inbox | ⬜ Not started | Durable Core-to-Android Insight delivery through Firestore. |
-| 10. FCM notification delivery | ⬜ Not started | Selective push signals, device registration and user preferences. |
-| 11. Meal analysis assistance | 🟡 Partial / deferred | `mosaic-server/main` contains a tested meal-analysis API, but the confirmed-record flow is not complete and this stage remains deferred behind the passive loop. |
+| 1. Windows Core foundation | 🟡 Partial / verification required | Foundation from `mosaic-core` PR #1 is merged into `main`; clean Windows 11 verification is still required. |
+| 2. Firebase identity and relay foundation | ⬜ Not started | Firebase project, Auth, Firestore paths, Rules and emulator tests are not implemented. |
+| 3. Android meal recording and local dashboard | 🟡 Partial / verification required | Room/dashboard foundations are in `main`; PR #18 adds local goals/progress and stacked PR #19 adds offline manual capture plus the analyzer boundary. Both PRs remain open. |
+| 4. Android event outbox and Firebase publishing | ⬜ Not started | Immutable contract events, offline queue and authenticated publishing are not implemented. |
+| 5. Core Firebase consumer and contract validation | ⬜ Not started | Core Firebase consumption is not implemented. |
+| 6. Durable local event storage | ⬜ Not started | Idempotent accepted-event storage, ownership and recovery are not implemented. |
+| 7. Meal projection and correction history | ⬜ Not started | Canonical event-driven meal projection and retained correction history are not implemented. |
+| 8. Scheduled analysis and Insight generation | ⬜ Not started | Weekly, catch-up-safe, evidence-backed Insight generation is not implemented. |
+| 9. Insight synchronization and Android inbox | ⬜ Not started | Durable Core-to-Android Insight delivery through Firestore is not implemented. |
+| 10. FCM notification delivery | ⬜ Not started | Selective push signaling and device preferences are not implemented. |
+| 11. Meal analysis assistance | 🟡 Partial / deferred | A legacy server analyzer exists; Android PR #19 introduces a replaceable `MealAnalyzer` boundary and targets on-device inference later. No production on-device runtime/model is selected yet. |
 | 12. Inventory module inside Android | ⬜ Not started | Uses the integration boundary established by meal contracts. |
 | 13. Fitness and swimming domains | 🟡 Partial / deferred | Android training foundations exist in `main`; the cross-domain event, analysis and Insight completion gate is not implemented. |
 | 14. Optional VPS services | ⬜ Not started | Added only for capabilities Android, Firebase and Core do not cover. |
@@ -70,7 +78,9 @@ Status tracks stage completion gates, not merely the presence of code. A capabil
 
 ## Current focus
 
-> Verify the merged Windows 11 Core foundation locally, establish shared quality gates, then complete the smallest nutrition vertical slice from Android event outbox through Core storage and a basic weekly Insight.
+> Finish and merge the smallest reliable **offline nutrition experience on Android** before adding Firebase: local goals/progress, manual meal capture, correction of saved meals, canonical meal IDs/revisions and restart verification. Stage 1 Windows verification remains outstanding in parallel; after the local Stage 3 gate is stable, continue with Stage 2 Firebase identity/security and the asynchronous event path.
+
+This is a deliberate product-focus choice. Stage numbering still describes architectural capabilities and completion gates; it does not require every code change to be performed strictly in numeric order when an earlier local product dependency can be completed independently.
 
 ---
 
@@ -92,7 +102,7 @@ Establish repository boundaries and a shared versioned language for data exchang
 - canonical meal, event, sync and Inventory-consumption schemas;
 - valid JSON examples and contract validation script;
 - initial trust and deployment boundaries;
-- Phase 1 implementation plan.
+- initial Phase 1 implementation plan.
 
 ### Completion gate
 
@@ -162,6 +172,10 @@ Create a secure cloud rendezvous point so Android and Core do not need to be onl
 
 Two test users are isolated by Rules, authenticated clients can access only their own paths, and unauthenticated or cross-user access is rejected in emulator tests.
 
+### Boundary
+
+Firebase begins after Android has a stable confirmed local record. Meal capture and daily progress must not depend on this stage. Raw meal photos and unconfirmed model estimates are not part of the default event relay.
+
 ---
 
 ## Stage 3 — Android meal recording and local dashboard — 🟡 Partial / verification required
@@ -177,7 +191,7 @@ Provide a useful offline nutrition experience before Core or Firebase analysis i
 ### Deliverables
 
 - Room entities for meals and components;
-- manual meal creation, editing and deletion semantics;
+- manual meal creation, editing and deletion/correction semantics;
 - stable meal and component IDs;
 - quantity, unit, preparation state and nutrition values;
 - optional Inventory item references;
@@ -185,11 +199,51 @@ Provide a useful offline nutrition experience before Core or Firebase analysis i
 - configured daily goals;
 - deterministic remaining-goal calculation;
 - local history by date;
-- immediate updates after a meal is recorded or corrected.
+- immediate updates after a meal is recorded or corrected;
+- restart persistence;
+- capture UI that does not require a model or Core connection.
+
+### Current state — 2026-09-06
+
+Already in `mosaic-android/main`:
+
+- Room-backed persisted meals through a temporary `MealAnalysis`-centric compatibility representation;
+- local daily nutrition totals and history display;
+- photo capture/review UI and editing of an analysis before saving;
+- app/module foundations for nutrition, training and photos.
+
+Open PR #18 — `Add daily nutrition goals and remaining progress`:
+
+- locally persisted calorie and protein goals;
+- consumed / goal / remaining progress on Today;
+- deterministic remaining calculation clamped at zero;
+- unit tests for below-goal, above-goal and invalid input behavior.
+
+Open stacked PR #19 — `Add offline manual meal capture and analyzer boundary`:
+
+- manual meal entry works without network or Core;
+- manual meals update the existing local dashboard immediately;
+- `MealAnalyzer` accepts image bytes/MIME through an implementation boundary rather than binding the UI to HTTP;
+- the old server call is retained behind `HttpMealAnalyzer` as a legacy/development adapter;
+- the intended future production adapter is on-device;
+- Fit unit tests were added to Android CI;
+- CI passed Fit unit tests, database/photos compilation and app assembly on the PR head;
+- the stacked branch was installed on a physical Android device and the new capture experience was smoke-tested successfully.
+
+The PRs remain open and therefore none of this new work is considered merged completion evidence yet.
+
+### Remaining work for Stage 3
+
+- review and merge PR #18 and PR #19 after local verification;
+- edit/correct and delete already-saved meals offline;
+- migrate the temporary `MealAnalysis`-centric storage to canonical `MealRecord` semantics;
+- stable meal/component IDs and revision behavior;
+- verify restart persistence after creation and correction;
+- verify accurate totals and remaining goals after corrections/deletions.
 
 ### Completion gate
 
-A user can record and correct meals offline, restart the application, and immediately see accurate daily totals and the remaining amount toward the configured protein goal without Core, Firebase or a model call.
+A user can record and correct meals offline, restart the application, and immediately see accurate daily totals and the remaining amount toward the configured protein and calorie goals without Core, Firebase or a model call.
 
 ---
 
@@ -205,7 +259,7 @@ Convert confirmed Android records into retry-safe immutable events and publish t
 
 ### Deliverables
 
-- mapping between Room records and contract DTOs;
+- mapping between canonical Room records and contract DTOs;
 - stable aggregate IDs and increasing revisions;
 - immutable meal-created and meal-updated events;
 - local outbox with pending, sent and failed states;
@@ -302,7 +356,7 @@ A meal can be created, corrected and queried after restart; Core exposes the lat
 
 ### Goal
 
-Turn synchronized history into useful proactive intelligence without requiring the user to ask Core a question.
+Turn synchronized confirmed history into useful proactive intelligence without requiring the user to ask Core a question.
 
 ### Repository
 
@@ -316,7 +370,7 @@ Turn synchronized history into useful proactive intelligence without requiring t
 - initial weekly nutrition summary;
 - detected-pattern and recommendation-candidate outputs;
 - evidence references to exact meals and revisions;
-- clear distinction between stored facts, calculations and inference;
+- clear distinction between stored facts, deterministic calculations and inference;
 - deterministic Insight IDs or equivalent deduplication;
 - analysis-run history and failure diagnostics.
 
@@ -404,18 +458,45 @@ A durable weekly Insight triggers at most one allowed notification per registere
 
 Reduce manual entry while preserving user control and the distinction between estimates and confirmed facts.
 
+### Architecture direction
+
+```text
+Camera → MealPhotoInput → MealAnalyzer
+                         ├─ on-device adapter (preferred production path)
+                         └─ remote/HTTP adapter (development or explicit fallback)
+                                  ↓
+                           analysis estimate
+                                  ↓
+                         user review/correction
+                                  ↓
+                     canonical MealRecord
+```
+
+The capture UI must not depend on a specific model runtime. The runtime/model can be replaced without changing the canonical meal record or local dashboard.
+
 ### Deliverables
 
 - photo- or text-assisted meal analysis;
 - replaceable local or remote model adapter;
+- preferred on-device production path for immediate mobile analysis on capable hardware;
 - `meal-analysis` kept separate from canonical `MealRecord`;
 - review, confirmation and correction flow;
-- retained assumptions and confidence;
-- only confirmed output becomes a trusted revision.
+- retained assumptions, confidence and original estimate;
+- only confirmed output becomes a trusted revision;
+- representative-device benchmarking before selecting a production runtime/model.
+
+### Current state
+
+- a tested server-side meal-analysis path exists from earlier work;
+- Android PR #19 introduces the replaceable `MealAnalyzer` application boundary and retains HTTP only as a legacy/development adapter;
+- no on-device ML runtime or production meal model has been selected or bundled;
+- model selection is intentionally deferred until representative Android hardware can be benchmarked for accuracy, memory, latency, battery and thermal behavior.
+
+Because PR #19 is open, the Android boundary is still work in progress rather than merged stage evidence.
 
 ### Completion gate
 
-A generated estimate can be corrected and converted into a canonical meal record without losing the original estimate, assumptions or confidence.
+A generated estimate can be corrected and converted into a canonical meal record without losing the original estimate, assumptions or confidence, and normal capture does not require the home Core to be online.
 
 ---
 
@@ -471,18 +552,18 @@ Add VPS services only when a capability is not appropriately provided by Android
 
 ### Candidate responsibilities
 
-- remote model inference;
+- remote model inference when an on-device or Core-local option is inappropriate;
 - external webhooks and integrations;
 - scheduled cloud workflows that must run while Core is offline;
 - media processing too expensive for the phone;
 - controlled remote commands;
 - vendor-independent relay if Firebase is later replaced.
 
-The VPS must not silently become the canonical personal-intelligence database.
+The VPS must not silently become the canonical personal-intelligence database or the mandatory meal-analysis path.
 
 ### Completion gate
 
-A concrete capability requires the VPS, has explicit authentication and retention rules, and can fail without corrupting Core's durable local state.
+A concrete capability requires the VPS, has explicit authentication and retention rules, and can fail without corrupting Core's durable local state or blocking the Android offline experience.
 
 ---
 
@@ -505,12 +586,14 @@ Every new domain must define ownership, contracts, cloud exposure, permissions, 
 
 ## Immediate implementation sequence
 
+The current product work intentionally completes the offline Android nutrition experience before Firebase. Stage numbers remain stable; this list reflects execution focus rather than renumbering the architecture.
+
 ```text
 ✅ 0. Architecture and initial contracts
 🟡 1. Verify the merged Windows Core foundation on Windows 11
-⬜ Q. Add repository quality gates for Core, Contracts and Android tests
+🟡 3. Finish and merge offline Android nutrition capture, correction and canonical local records  ← current focus
+🟡 Q. Android Fit tests are being added to CI in PR #19; Core/Contracts quality gates remain
 ⬜ 2. Establish Firebase Auth, Firestore paths and Security Rules
-🟡 3. Complete and verify Android meal recording and immediate local calculations
 ⬜ 4. Build the Android event outbox and Firebase publishing
 ⬜ 5. Consume and validate Firebase events in Core
 ⬜ 6. Persist events idempotently in Core
@@ -520,17 +603,21 @@ Every new domain must define ownership, contracts, cloud exposure, permissions, 
 ⬜ 10. Signal the Insight selectively through FCM
 ```
 
+Stage 11 on-device meal assistance can advance incrementally after the Stage 3 local record boundary is stable. Its adapter boundary may exist earlier, but a production runtime/model is not required for Stage 3 completion.
+
 ## First useful product milestone
 
 The first product milestone is reached when:
 
-1. Android records meals offline and immediately shows daily protein totals and the remaining amount toward the user's goal.
+1. Android records and corrects meals offline and immediately shows daily calorie/protein totals and remaining configured goals.
 2. Events synchronize asynchronously through Firebase.
 3. Core catches up when the Windows computer becomes available.
-4. Core generates one evidence-backed weekly Insight.
+4. Core generates one evidence-backed weekly Insight from confirmed data.
 5. The Insight appears durably in the Android inbox.
 6. An optional FCM notification points to that Insight without being required for delivery correctness.
 
+On-device meal analysis improves capture convenience but is not required for this milestone's correctness.
+
 ## Working rule
 
-The project has one primary implementation milestone at a time. A stage is marked ✅ **Complete** only when its completion gate is verified and the relevant implementation is merged into `main`.
+The project has one primary implementation focus at a time. A stage is marked ✅ **Complete** only when its completion gate is verified and the relevant implementation is merged into `main`.

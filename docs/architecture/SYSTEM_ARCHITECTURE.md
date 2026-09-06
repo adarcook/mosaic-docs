@@ -7,6 +7,8 @@ Mosaic is a local-first personal intelligence platform that creates a reliable, 
 It is not a single large application and it is not a foundation model trained from scratch. It is a system built around:
 
 - domain-owned applications and local data;
+- immediate mobile workflows that remain useful offline;
+- optional on-device model assistance for latency-sensitive capture tasks;
 - versioned immutable events;
 - asynchronous synchronization through Firebase;
 - durable local storage and projections in Mosaic Core;
@@ -14,20 +16,21 @@ It is not a single large application and it is not a foundation model trained fr
 - permissions, provenance and evidence;
 - optional remote compute for narrowly defined tasks.
 
-Mosaic Core is primarily an asynchronous personal-intelligence engine. It is not required to be an always-online conversational server.
+Mosaic Core is primarily an asynchronous personal-intelligence engine. It is not required to be an always-online conversational server or an always-available meal-analysis endpoint.
 
 ## 2. Architectural principles
 
 1. **Local-first intelligence** — durable personal history, projections and cross-domain intelligence live on the user-controlled home computer.
 2. **Domain ownership** — each domain app owns its operational records and user experience.
-3. **Immediate mobile utility** — deterministic daily calculations are performed from local Android data and do not depend on Core availability.
-4. **Asynchronous Core** — Core synchronizes, catches up and analyzes when the home computer is available.
-5. **Immutable synchronization events** — corrections create new revisions instead of overwriting historical events.
-6. **Durable Insights before notifications** — an Insight is stored before any push signal is sent.
-7. **Evidence before inference** — every derived Insight retains source references, assumptions and confidence where applicable.
-8. **Replaceable infrastructure** — Firebase, model providers and optional VPS workers are adapters with explicit boundaries.
-9. **Least privilege and user isolation** — every cloud and local record is user-scoped and access is explicitly authorized.
-10. **Notifications are selective** — FCM is a user-controlled signal, not the source of truth and not a delivery guarantee.
+3. **Immediate mobile utility** — recording, correction and deterministic daily calculations are performed from local Android data and do not depend on Core availability.
+4. **On-device assistance for immediate capture** — when model assistance is useful for a latency-sensitive mobile workflow such as meal-photo analysis, the preferred production path is a replaceable on-device adapter on capable hardware.
+5. **Asynchronous Core** — Core synchronizes, catches up and performs deeper historical analysis when the home computer is available.
+6. **Immutable synchronization events** — corrections create new revisions instead of overwriting historical events.
+7. **Durable Insights before notifications** — an Insight is stored before any push signal is sent.
+8. **Evidence before inference** — every derived Insight retains source references, assumptions and confidence where applicable.
+9. **Replaceable infrastructure** — Firebase, model runtimes, model providers and optional VPS workers are adapters with explicit boundaries.
+10. **Least privilege and user isolation** — every cloud and local record is user-scoped and access is explicitly authorized.
+11. **Notifications are selective** — FCM is a user-controlled signal, not the source of truth and not a delivery guarantee.
 
 ## 3. High-level topology
 
@@ -35,6 +38,8 @@ Mosaic Core is primarily an asynchronous personal-intelligence engine. It is not
 flowchart LR
     subgraph Mobile[Android device]
         UI[Mosaic Android UI]
+        Capture[Local meal capture and review]
+        LocalModel[On-device model adapter]
         Room[(Room domain data)]
         Calc[Local calculations]
         Outbox[Immutable event outbox]
@@ -64,6 +69,10 @@ flowchart LR
         CloudModels[Selected cloud model APIs]
     end
 
+    UI --> Capture
+    Capture --> Room
+    Capture -. optional local inference .-> LocalModel
+    LocalModel -. estimate .-> Capture
     UI --> Room
     Room --> Calc
     Room --> Outbox
@@ -88,6 +97,8 @@ flowchart LR
     Analysis -. selected heavy task .-> VPS
 ```
 
+The mobile model adapter is deliberately separate from Core analysis. A future Android runtime may change without changing the canonical meal contract, Room ownership or the capture/review flow.
+
 ## 4. Component responsibilities
 
 ### 4.1 Mosaic Android
@@ -98,12 +109,34 @@ It owns:
 
 - Room entities for meals, measurements, workouts, Inventory and other mobile domains;
 - local creation, correction and display workflows;
-- immediate deterministic calculations such as daily protein totals and remaining target amounts;
+- manual meal capture that never requires network connectivity;
+- immediate deterministic calculations such as daily protein/calorie totals and remaining target amounts;
+- configurable local daily goals;
+- the review and confirmation step that turns an estimate into a trusted operational record;
 - stable aggregate IDs and revisions;
 - an immutable, retry-safe event outbox;
 - the local Insight inbox and notification preferences.
 
 Android does not need Core to answer simple questions that can be calculated from current local records.
+
+#### Meal-analysis adapter boundary
+
+Photo-assisted meal analysis is an optional Android capability behind a replaceable application boundary:
+
+```text
+MealPhotoInput → MealAnalyzer → MealAnalysis estimate
+```
+
+The intended production behavior is:
+
+- prefer an on-device analyzer on capable hardware;
+- retain a remote/HTTP analyzer only as a development tool or explicitly selected fallback;
+- keep model/runtime details out of the capture UI and canonical meal contract;
+- retain assumptions, confidence and original estimated values when available;
+- require user review/confirmation before an estimate becomes trusted meal data;
+- keep immediate capture working while Core is off.
+
+The exact on-device runtime and model are selected only after benchmarking representative target hardware for accuracy, memory use, latency, thermal behavior and battery impact.
 
 ### 4.2 Firebase Authentication
 
@@ -126,7 +159,7 @@ Its responsibilities are limited to:
 - supporting mobile offline writes and retry;
 - storing limited device and synchronization metadata.
 
-Firestore is not the canonical long-term intelligence database.
+Firestore is not the canonical long-term intelligence database and is not the default transport for meal photos or unconfirmed analysis estimates.
 
 ### 4.4 Mosaic Core event consumer
 
@@ -167,6 +200,8 @@ Initial cadence:
 - weekly: generate summaries, detected patterns and recommendation candidates.
 
 The engine combines structured queries, calculations and optional model inference. It must distinguish stored facts, deterministic calculations and inferred conclusions.
+
+Immediate meal-photo analysis is not a scheduled Core responsibility; it belongs to the Android capture experience when supported locally.
 
 ### 4.7 Insight publisher
 
@@ -219,7 +254,9 @@ Notification dispatch respects:
 
 ### Mosaic nutrition and fitness domain
 
-Owns meal capture, corrections, daily targets, measurements and the mobile dashboard. Daily totals and remaining targets are calculated locally in Android.
+Owns manual and assisted meal capture, corrections, daily targets, measurements and the mobile dashboard. Daily totals and remaining targets are calculated locally in Android.
+
+Model-generated meal values are suggestions until the user confirms them. Confirmed meal data, not raw model output, is the business record that enters the normal synchronization path.
 
 ### Mosaic Inventory
 
@@ -235,14 +272,14 @@ Owns local media ingestion, face clustering and photo search. Core receives sele
 
 ### Mosaic Core
 
-Owns accepted cross-domain event history, local projections, provenance, scheduled analysis and proactive Insights. It does not need to serve remote interactive questions continuously.
+Owns accepted cross-domain event history, local projections, provenance, scheduled analysis and proactive Insights. It does not need to serve remote interactive questions continuously or be reachable when the user records a meal.
 
 ## 6. Primary data flows
 
 ### 6.1 Android-to-Core event flow
 
 ```text
-User records or corrects data in Android
+User records or corrects confirmed data in Android
 → Room transaction updates operational state
 → immutable event is added to the local outbox
 → Android publishes the event to the user's Firestore path
@@ -262,7 +299,32 @@ User opens the daily dashboard
 
 This flow works without Firebase connectivity and while the home computer is off.
 
-### 6.3 Passive Insight flow
+### 6.3 Local meal-capture flow
+
+Manual path:
+
+```text
+User enters meal details
+→ Android validates local fields
+→ confirmed meal is saved to Room
+→ daily totals and goal progress update immediately
+```
+
+Assisted path on a capable device:
+
+```text
+User captures a meal photo
+→ Android reads the photo into MealPhotoInput
+→ MealAnalyzer runs through the selected on-device adapter
+→ an estimate with confidence/assumptions is shown
+→ user confirms or corrects it
+→ confirmed meal is saved to Room
+→ daily totals and goal progress update immediately
+```
+
+Neither path requires Mosaic Core to be online.
+
+### 6.4 Passive Insight flow
 
 ```text
 Core starts or reaches a scheduled analysis window
@@ -280,6 +342,8 @@ Core starts or reaches a scheduled analysis window
 Android immediately displays:
 
 > 108 g protein recorded today; 22 g remain to reach the configured target.
+
+The user may have entered the meal manually or confirmed an on-device estimate; the daily result is deterministic either way because it is calculated from confirmed Room records.
 
 After a weekly Core run, Mosaic may publish:
 
@@ -314,8 +378,11 @@ None of these are required for the first useful Mosaic experience.
 
 - exposing Mosaic Core as a public internet server;
 - requiring the phone and home computer to be online simultaneously;
+- requiring direct HTTP access to the home Core for meal recording or meal-photo analysis;
 - using FCM as persistent storage or a guaranteed queue;
 - storing the entire personal-intelligence database in Firestore;
+- uploading meal photos to Firebase by default;
+- treating model estimates as trusted nutrition facts before confirmation;
 - unrestricted autonomous agents;
 - fully automatic destructive actions;
 - automatic stock deduction from uncertain meal estimates;
