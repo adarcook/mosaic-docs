@@ -165,29 +165,40 @@ Inventory owns stock levels, purchases, expiry dates, conversions and final dedu
 
 The foundation from `mosaic-core` PR #1 is merged into `mosaic-core/main`. A clean run of the documented setup and validation flow on the Windows 11 home computer is still required before this milestone is marked complete.
 
-### 3. Android offline nutrition experience — 🟡 partial / open PRs
+### 3. Android offline nutrition experience — 🟡 partial / verification required
 
-Already present in `mosaic-android/main` before the current work:
+Merged into `mosaic-android/main`:
 
-- Room-backed meal persistence using a temporary `MealAnalysis`-centric compatibility model;
-- daily nutrition totals from local data;
-- saved-meal history display;
-- photo-first analysis/review flow;
-- training and other feature-module foundations.
+- Room-backed meal persistence and local daily nutrition totals;
+- locally persisted calorie/protein goals and deterministic consumed/goal/remaining calculations from PR #18;
+- fully offline manual meal entry from PR #19;
+- the replaceable `MealAnalyzer` boundary from PR #19, with HTTP retained only as a legacy/development adapter;
+- Fit unit tests in Android CI from PR #19;
+- saved-meal edit and delete UI from PR #20;
+- immediate local total/progress updates after record changes;
+- physical-device smoke verification of manual capture and saved-meal edit/delete.
 
-Current open work:
+Current open work — Draft PR #21 `Add canonical meal identity and revision persistence`:
 
-- PR #18 adds locally persisted calorie/protein goals, deterministic remaining-goal calculations, progress UI and unit tests;
-- stacked PR #19 adds fully offline manual meal entry, introduces the replaceable `MealAnalyzer` boundary, moves the existing HTTP analyzer behind a legacy adapter, and adds Fit unit tests to Android CI;
-- PR #19 CI passed for Fit unit tests, database/photos compilation and `:app:assembleDebug`;
-- the stacked branch was installed and smoke-tested on a physical Android device; the new manual capture UI is visible and usable.
+- upgrades Room v3→v4 without an uninstall/data reset;
+- separates canonical UUID `mealId` from `analysisId` provenance;
+- adds stable UUID `componentId` values;
+- makes corrections append-only local revisions with `supersedesRevision`;
+- converts deletion to a `deleted` tombstone revision instead of physical history removal;
+- deterministically migrates existing legacy IDs to UUIDs while preserving existing user-visible data;
+- exposes revision history for later event-outbox mapping;
+- adds database revision-semantics tests to Android CI;
+- CI passes database compile/tests, Fit tests, Photos compile and app assemble;
+- physical v3→v4 migration and restart verification against the existing device database is still required.
 
 Still required before this milestone can be considered complete:
 
-- merge the reviewed Android PRs into `main`;
-- edit and delete/correct already-saved meals offline;
-- migrate the compatibility storage model to canonical `MealRecord` semantics with stable meal/component IDs and revisions;
-- verify restart persistence and accurate totals after corrections;
+- verify and merge PR #21 after physical-device migration/restart testing;
+- normalize full canonical meal components: numeric quantity, canonical unit, preparation state, per-component nutrition and nutrition status;
+- persist canonical source/device metadata required by `MealRecord`;
+- add exact canonical DTO serialization/validation before the event outbox;
+- verify restart persistence after creation, repeated correction and deletion;
+- verify accurate totals and remaining goals after those restart cycles;
 - keep the completion gate model-independent.
 
 ### 4. Firebase identity and security foundation — ⬜ not started
@@ -259,7 +270,7 @@ Still required before this milestone can be considered complete:
 
 Photo/text analysis is deliberately separated from the trusted meal-record path.
 
-The Android capture UI should depend on a replaceable `MealAnalyzer` interface. On capable devices the preferred production implementation is on-device inference. A remote/HTTP implementation may remain useful for development or an explicitly selected fallback.
+The Android capture UI depends on a replaceable `MealAnalyzer` interface. On capable devices the preferred production implementation is on-device inference. A remote/HTTP implementation may remain useful for development or an explicitly selected fallback.
 
 The model/runtime is not selected in Phase 1. Selection should follow measurement on representative target hardware, including:
 
