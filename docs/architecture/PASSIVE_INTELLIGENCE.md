@@ -12,9 +12,11 @@ Mosaic is split into two complementary experiences:
 
 ```text
 Android local experience
-- immediate calculations
+- manual capture and correction
+- immediate deterministic calculations
 - offline dashboard
 - current goals and progress
+- optional on-device model assistance
 
 Mosaic Core asynchronous intelligence
 - periodic synchronization
@@ -22,20 +24,60 @@ Mosaic Core asynchronous intelligence
 - proactive insights and recommendations
 ```
 
-Android answers simple deterministic questions from local Room data. Core periodically analyzes synchronized history and publishes durable insights back through Firebase.
+Android owns the immediate operational experience. Core periodically analyzes synchronized confirmed history and publishes durable insights back through Firebase.
+
+This separation is intentional: model-assisted meal capture may use a local model on the phone, while deeper weekly pattern analysis remains a Core responsibility.
 
 ## Immediate Android capabilities
 
-The Android application should calculate locally, without requiring Core or Firebase:
+The Android application should work locally, without requiring Core or Firebase, for:
 
+- manual meal creation and correction;
 - protein consumed today;
 - protein remaining against the selected target;
 - recorded calories and other nutrition totals;
+- daily calorie and protein goal progress;
 - latest weight and measurements;
 - recent meals and workouts;
-- basic goal progress.
+- immediate updates after a record changes.
 
-These calculations are deterministic projections over local records. They do not require a language model.
+These deterministic calculations are projections over local records. They do not require a language model.
+
+## On-device meal-analysis assistance
+
+Meal-analysis assistance is an optional enhancement to capture, not a replacement for trusted records.
+
+Preferred production flow on a capable Android device:
+
+```text
+Camera
+  ↓
+MealPhotoInput
+  ↓
+MealAnalyzer
+  ↓
+on-device model runtime
+  ↓
+estimated foods / quantities / nutrition
+  ↓
+user review or correction
+  ↓
+confirmed local meal record
+  ↓
+Room + deterministic daily totals
+```
+
+Architectural rules:
+
+- the capture UI depends on a replaceable `MealAnalyzer` boundary rather than a specific model runtime;
+- an on-device analyzer is the preferred production path for immediate photo analysis;
+- a remote or HTTP analyzer may exist for development or an explicit fallback, but it must not be required for normal meal capture;
+- the home Core being offline must not block manual or supported on-device capture;
+- model output is an estimate until confirmed by the user;
+- assumptions, confidence and original estimated values should be retained when available;
+- only confirmed structured meal data becomes trusted history and enters the normal event pipeline.
+
+Model/runtime selection is intentionally deferred until representative target hardware can be benchmarked for accuracy, memory use, latency, thermal impact and battery cost.
 
 ## Core responsibilities
 
@@ -48,6 +90,8 @@ Core is primarily an asynchronous personal-intelligence engine. It should:
 - produce summaries, insights and recommendation candidates;
 - preserve evidence and provenance for every generated result;
 - publish selected results to Firebase for Android consumption.
+
+Core is not required to analyze a meal photo in the moment. Its value is deeper historical and cross-domain analysis over confirmed data.
 
 Interactive local querying may be added when Core is reachable, but it is not required for the main user value.
 
@@ -107,7 +151,7 @@ The cadence must be configurable per user and per insight category. A missed sch
 ## Firebase result path
 
 ```text
-Android events
+Android confirmed events
     ↓
 Firestore event relay
     ↓
@@ -219,12 +263,15 @@ Shared or household insights require an explicit audience model rather than copy
 
 The first useful slice should prove:
 
-1. Android calculates current daily nutrition totals locally.
-2. Core can synchronize when available without being publicly reachable.
-3. Core generates a weekly evidence-backed nutrition Insight.
-4. The Insight is written to the correct Firebase user path.
-5. Android receives and stores the Insight.
-6. An FCM notification can open the exact stored Insight.
-7. Reprocessing or retrying does not create duplicate Insights or duplicate notification records.
+1. Android can record and correct meals offline and calculate current daily nutrition totals locally.
+2. Configured calorie and protein goals and remaining amounts persist locally.
+3. Core can synchronize when available without being publicly reachable.
+4. Core generates a weekly evidence-backed nutrition Insight from confirmed data.
+5. The Insight is written to the correct Firebase user path.
+6. Android receives and stores the Insight.
+7. An FCM notification can open the exact stored Insight.
+8. Reprocessing or retrying does not create duplicate Insights or duplicate notification records.
 
-Interactive remote question answering, real-time Core availability and autonomous high-frequency notifications are explicitly deferred.
+On-device meal analysis may be added to reduce manual entry once the confirmed local record model is stable. It is not required for the correctness of the passive loop.
+
+Interactive remote question answering, real-time Core availability, mandatory remote meal analysis and autonomous high-frequency notifications are explicitly deferred.
