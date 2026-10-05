@@ -8,7 +8,7 @@ Mosaic Core is not assumed to be continuously reachable from the phone. The home
 
 ## Decision
 
-Mosaic is split into two complementary experiences:
+Mosaic is split into two complementary experiences. "Passive Core" does not mean the phone itself must be passive: Android may provide an always-available local voice assistant while Core remains asynchronous.
 
 ```text
 Android local experience
@@ -16,7 +16,10 @@ Android local experience
 - immediate deterministic calculations
 - offline dashboard
 - current goals and progress
-- optional on-device model assistance
+- low-power wake-word activation
+- on-demand local ASR / agent / TTS
+- permission-scoped notification and device context
+- optional on-device multimodal model assistance
 
 Mosaic Core asynchronous intelligence
 - periodic synchronization
@@ -42,6 +45,49 @@ The Android application should work locally, without requiring Core or Firebase,
 - immediate updates after a record changes.
 
 These deterministic calculations are projections over local records. They do not require a language model.
+
+## On-device voice assistant
+
+Mosaic may provide an always-available local assistant experience on Android without keeping a general-purpose LLM active continuously.
+
+Preferred runtime shape:
+
+```text
+microphone
+  ↓
+low-power wake-word detector ("Mosaic")
+  ↓ activation only
+local ASR
+  ↓
+local agent / tool router
+  ↓
+permission-scoped local tools
+  ↓
+local TTS
+```
+
+Rules:
+
+- wake-word detection is a separate lightweight component from ASR and the agent model;
+- ASR, the agent model, vision and TTS should run only when required by an active interaction;
+- the assistant must remain functional for supported local tasks while Core and Firebase are unavailable;
+- notification/message access requires explicit Android permission and remains local by default;
+- reading content aloud is a retrieval operation, not authorization for a reply or other side effect;
+- externally visible or destructive tool calls are gated by an action policy and confirmation where appropriate;
+- Android-supported assistant/background APIs are preferred over attempts to keep an unrestricted microphone service alive.
+
+A representative interaction is:
+
+```text
+"Mosaic"
+→ "Yes?"
+→ "Read my latest message"
+→ query authorized recent notifications
+→ select the requested item
+→ speak it through TTS
+```
+
+The local assistant may later use the same tool boundary for photo search, local memory retrieval, calls, reminders and application navigation.
 
 ## On-device meal-analysis assistance
 
@@ -93,7 +139,7 @@ Core is primarily an asynchronous personal-intelligence engine. It should:
 
 Core is not required to analyze a meal photo in the moment. Its value is deeper historical and cross-domain analysis over confirmed data.
 
-Interactive local querying may be added when Core is reachable, but it is not required for the main user value.
+Interactive querying of Core may be added when Core is reachable, but it is not required for the Android local assistant. Ordinary wake-word, ASR, local retrieval/tool use and TTS should not depend on Core availability.
 
 ## Insight model
 
@@ -274,4 +320,4 @@ The first useful slice should prove:
 
 On-device meal analysis may be added to reduce manual entry once the confirmed local record model is stable. It is not required for the correctness of the passive loop.
 
-Interactive remote question answering, real-time Core availability, mandatory remote meal analysis and autonomous high-frequency notifications are explicitly deferred.
+Interactive remote Core question answering, real-time Core availability, mandatory remote meal analysis and autonomous high-frequency notifications are explicitly deferred. On-device wake-word interaction and local tool use are a separate capability and do not imply unrestricted autonomy.
