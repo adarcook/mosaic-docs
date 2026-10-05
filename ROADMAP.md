@@ -10,14 +10,18 @@ This roadmap defines the order in which Mosaic will be built. Each stage has a c
 
 ## Product direction
 
-Mosaic is not initially an always-available conversational server.
+Mosaic is not initially an always-available **remote Core conversational server**. The Android device may, however, provide an always-available local assistant experience without requiring the Windows Core to be online.
 
 ```text
 Immediate local experience
-Android Room
+Android device
+  ├── Room operational data
   ├── manual capture and correction
   ├── deterministic calculations and goals
-  └── optional on-device model assistance
+  ├── low-power wake-word detection ("Mosaic")
+  ├── on-demand local ASR → agent → TTS
+  ├── notification/context collectors with explicit permissions
+  └── replaceable on-device model assistance
 
 Asynchronous intelligence
 Android confirmed events
@@ -36,6 +40,8 @@ Android displays the Insight
 ```
 
 Android owns the immediate operational experience. Meal recording, correction, daily calorie/protein totals and remaining-goal calculations must work while Firebase is unavailable and the home computer is off.
+
+The longer-term Android direction also includes a local voice-agent loop: a low-power wake-word detector may listen for an explicit activation phrase such as "Mosaic"; ASR, the local agent model and TTS wake only on demand. With user-granted Android permissions, the agent may query local context such as recent notifications and read selected messages aloud. Sensitive content remains local by default, and externally visible or destructive actions require policy checks and confirmation according to their risk.
 
 Photo-assisted meal analysis is an optional capture aid. The preferred production direction is a replaceable on-device analyzer on capable Android hardware. Model output remains an estimate until the user confirms or corrects it; only confirmed structured meal data becomes trusted history.
 

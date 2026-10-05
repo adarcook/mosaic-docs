@@ -9,6 +9,8 @@ It is not a single large application and it is not a foundation model trained fr
 - domain-owned applications and local data;
 - immediate mobile workflows that remain useful offline;
 - optional on-device model assistance for latency-sensitive capture tasks;
+- an on-device voice-agent loop with low-power wake-word activation, on-demand ASR, tool use and TTS;
+- permission-scoped local context collectors such as Android notifications;
 - versioned immutable events;
 - asynchronous synchronization through Firebase;
 - durable local storage and projections in Mosaic Core;
@@ -31,6 +33,8 @@ Mosaic Core is primarily an asynchronous personal-intelligence engine. It is not
 9. **Replaceable infrastructure** — Firebase, model runtimes, model providers and optional VPS workers are adapters with explicit boundaries.
 10. **Least privilege and user isolation** — every cloud and local record is user-scoped and access is explicitly authorized.
 11. **Notifications are selective** — FCM is a user-controlled signal, not the source of truth and not a delivery guarantee.
+12. **Always-available does not mean always-running LLM** — a tiny wake-word component may remain active, while ASR, the agent model, vision and TTS run only when needed.
+13. **Permission-scoped local agency** — notification access, microphone access and Android actions are explicit capabilities. Reading local context does not automatically authorize sending, deleting, purchasing or other externally visible/destructive actions.
 
 ## 3. High-level topology
 
@@ -38,8 +42,13 @@ Mosaic Core is primarily an asynchronous personal-intelligence engine. It is not
 flowchart LR
     subgraph Mobile[Android device]
         UI[Mosaic Android UI]
+        Wake[Low-power wake-word detector]
+        ASR[On-demand local ASR]
+        Agent[Local agent / tool router]
+        TTS[Local TTS]
+        Notify[Notification/context collector]
         Capture[Local meal capture and review]
-        LocalModel[On-device model adapter]
+        LocalModel[On-device multimodal model adapter]
         Room[(Room domain data)]
         Calc[Local calculations]
         Outbox[Immutable event outbox]
@@ -69,6 +78,12 @@ flowchart LR
         CloudModels[Selected cloud model APIs]
     end
 
+    Wake --> ASR
+    ASR --> Agent
+    Agent --> TTS
+    Notify --> Agent
+    Agent --> Room
+    Agent -. tool request .-> UI
     UI --> Capture
     Capture --> Room
     Capture -. optional local inference .-> LocalModel
@@ -97,7 +112,9 @@ flowchart LR
     Analysis -. selected heavy task .-> VPS
 ```
 
-The mobile model adapter is deliberately separate from Core analysis. A future Android runtime may change without changing the canonical meal contract, Room ownership or the capture/review flow.
+The mobile model adapter is deliberately separate from Core analysis. A future Android runtime may change without changing canonical contracts, Room ownership or the capture/review flow.
+
+The local assistant path is also separate from the asynchronous Core path. Wake-word detection is intentionally lightweight; detecting "Mosaic" activates the heavier ASR → agent → tool → TTS pipeline only for the duration of the interaction. The Windows Core is not required for this loop.
 
 ## 4. Component responsibilities
 
@@ -118,6 +135,33 @@ It owns:
 - the local Insight inbox and notification preferences.
 
 Android does not need Core to answer simple questions that can be calculated from current local records.
+
+#### Local voice-agent boundary
+
+The intended local assistant flow is:
+
+```text
+low-power wake-word detector
+  → explicit "Mosaic" activation
+  → on-demand local ASR
+  → local agent reasoning / tool selection
+  → permission-scoped Android tools and local retrieval
+  → local TTS response
+```
+
+The LLM is not kept continuously active. The wake-word component should be independently replaceable and optimized for low memory, thermal and battery cost.
+
+Initial local tools may include:
+
+- query recent Room-backed domain records;
+- query explicitly authorized Android notification history/context;
+- search locally indexed photos and metadata;
+- read selected notification/message text aloud through TTS;
+- open the relevant application or Mosaic screen.
+
+Actions that create external side effects, including sending a message, deleting data, making purchases or changing protected settings, must pass an explicit action policy and require confirmation when appropriate.
+
+Android platform integration should prefer supported assistant/background APIs. If Mosaic is configured as the device's assistant, Android's voice-interaction facilities are preferred over an unrestricted always-running microphone service.
 
 #### Meal-analysis adapter boundary
 
@@ -324,7 +368,31 @@ User captures a meal photo
 
 Neither path requires Mosaic Core to be online.
 
-### 6.4 Passive Insight flow
+### 6.4 Local voice interaction flow
+
+```text
+User says "Mosaic"
+→ low-power wake-word detector activates the interaction
+→ local ASR transcribes the request
+→ local agent selects retrieval/tools
+→ Android executes only permitted tool calls
+→ local agent prepares the answer
+→ TTS speaks the response
+→ heavy inference components return to idle
+```
+
+Example:
+
+```text
+"Mosaic, read the latest message from my wife"
+→ query authorized recent notifications
+→ select matching notification
+→ speak its text locally
+```
+
+Notification-derived message content is local context by default and is not uploaded to Firebase/Core merely because it was read by the assistant.
+
+### 6.5 Passive Insight flow
 
 ```text
 Core starts or reaches a scheduled analysis window
@@ -362,17 +430,13 @@ The first installation may support one configured Firebase user, but the archite
 - user-specific evidence and Insights;
 - explicit rules for shared household domains such as Inventory.
 
-## 9. Optional interactive access
+## 9. Interactive access
 
-Interactive question answering is deferred and optional.
+On-device interactive access is an intended Android capability and does not require Core reachability.
 
-Possible future modes include:
+The preferred direction is a local assistant that can be activated by an explicit wake word, interpret Hebrew speech locally, use permission-scoped tools over local context and answer through TTS. This capability should remain useful while the home computer and Firebase are unavailable.
 
-- local questions while the user is on the home network and Core is available;
-- a limited cloud service for approved question types;
-- on-device natural-language interpretation backed by local Room calculations.
-
-None of these are required for the first useful Mosaic experience.
+Interactive access to the deeper Windows Core remains optional and deferred. It may later provide historical or compute-heavy answers when Core is reachable, but the Android assistant must not depend on it for ordinary local actions.
 
 ## 10. Non-goals for the first passive slice
 
@@ -384,6 +448,8 @@ None of these are required for the first useful Mosaic experience.
 - uploading meal photos to Firebase by default;
 - treating model estimates as trusted nutrition facts before confirmation;
 - unrestricted autonomous agents;
+- keeping a general-purpose LLM continuously active only to detect the wake word;
+- covert or permission-bypassing microphone/notification collection;
 - fully automatic destructive actions;
 - automatic stock deduction from uncertain meal estimates;
 - complex multi-tenant SaaS administration;

@@ -68,7 +68,7 @@ Firebase provides an always-available rendezvous point while allowing Core to re
 - performs scheduled and catch-up deep analysis when the home computer is available;
 - remains usable for already-synchronized data when Firebase is unavailable.
 
-Core is not required for immediate manual meal capture, deterministic daily totals or the intended on-device photo-analysis path.
+Core is not required for immediate manual meal capture, deterministic daily totals, the intended on-device photo-analysis path, or supported local voice-agent interactions.
 
 ### Mosaic Android
 
@@ -76,6 +76,7 @@ Core is not required for immediate manual meal capture, deterministic daily tota
 - supports manual meal creation and correction offline;
 - performs deterministic local calculations such as daily calories, protein and remaining goals;
 - may run replaceable on-device model assistance for meal photos on capable devices;
+- may provide wake-word activated local ASR/agent/TTS and permission-scoped local tools without involving Firebase;
 - creates stable IDs and revisions;
 - creates immutable event documents only from confirmed records;
 - maintains a local retry-safe outbox;
@@ -93,6 +94,18 @@ Meal analysis assistance is separate from Firebase synchronization.
 - once the user confirms a structured meal, the resulting canonical meal revision can enter the normal outbox/event flow.
 
 A remote HTTP analyzer may remain available for development or an explicitly selected fallback, but it must not reintroduce a requirement that the home Core be online during meal capture.
+
+## Local assistant data boundary
+
+Voice-assistant interaction is not automatically a synchronization event.
+
+- wake-word audio is not uploaded to Firestore;
+- notification/message previews obtained through Android notification access remain local by default;
+- ASR transcripts are not synchronized merely because an interaction occurred;
+- a local tool action that mutates a Mosaic domain record may produce the same canonical domain event as the equivalent UI action;
+- future synchronization of conversation history, transcripts or message-derived context requires an explicit contract, retention policy and privacy decision.
+
+This keeps Firebase focused on canonical domain state and durable Insights rather than becoming a mirror of sensitive phone context.
 
 ## Event model
 
@@ -141,6 +154,7 @@ Core must not use a global unscoped event collection. Future household support m
 - Firebase server SDKs use IAM and bypass client Security Rules; Core must independently constrain which users it processes.
 - Contract validation remains mandatory after download.
 - Meal photos stay local by default and are not part of the ordinary event relay.
+- Notification contents, message previews, wake-word audio and ordinary ASR transcripts stay local by default and are not part of the ordinary event relay.
 - Sensitive payload retention and optional application-level encryption require an explicit decision before syncing broader domains.
 
 ## Retention
