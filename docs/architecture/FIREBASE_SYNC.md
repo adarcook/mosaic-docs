@@ -6,7 +6,7 @@ Accepted for the planned Android-to-Core synchronization architecture.
 
 Firebase implementation has not started yet. This document defines the intended boundary before synchronization code is added.
 
-The current product focus is to finish the offline Android nutrition workflow first so Firebase is added to a stable confirmed-record model rather than becoming a dependency for basic meal tracking.
+**Current prioritization (2026-10-17):** Firebase is deferred. The first useful product is an Android-local Hebrew voice agent using explicit, permission-scoped tools (beginning with reading an accessible WhatsApp notification aloud). Nutrition and photos are paused as primary app modules. See [voice-first decision](VOICE_FIRST_PRODUCT_DIRECTION.md). This document retains the intended future asynchronous event/Insight design.
 
 ## Decision
 
@@ -24,7 +24,7 @@ Mosaic Core local event store
 
 Firebase is not the canonical Mosaic intelligence database. Core remains responsible for durable accepted history, projections, provenance, indexing and evidence-backed analysis.
 
-Firebase is also not part of the immediate meal-capture correctness path. A user must be able to record a meal, see local totals and progress, and restart the application while the home computer and Firebase connectivity are unavailable.
+Firebase is not part of the local voice-turn or notification-tool correctness path. When historical meal capture is revived, Firebase is also not part of its immediate correctness path. A user must be able to record a meal, see local totals and progress, and restart the application while the home computer and Firebase connectivity are unavailable.
 
 ## Motivation
 
@@ -72,7 +72,8 @@ Core is not required for immediate manual meal capture, deterministic daily tota
 
 ### Mosaic Android
 
-- stores domain records in Room;
+- **currently** provides a local voice agent and permission-scoped device tools without depending on Firebase;
+- preserves existing domain records in Room for optional future tools;
 - supports manual meal creation and correction offline;
 - performs deterministic local calculations such as daily calories, protein and remaining goals;
 - may run replaceable on-device model assistance for meal photos on capable devices;
