@@ -1,6 +1,25 @@
 # Phase 1 Plan
 
-## Goal
+## Active first useful product slice — 2026-10-17
+
+**Superseding decision:** [voice-first and tool-first direction](VOICE_FIRST_PRODUCT_DIRECTION.md). The nutrition plan retained below is a **historical, paused plan**, not the current implementation queue. Its work was not completed merely because priorities changed.
+
+The active Android milestone is a real-world, offline-capable Hebrew voice interaction:
+
+1. The user explicitly starts a safe foreground spoken turn; reliable Zipformer/Gemma/BlueTTS operation is confirmed with repeated Pixel testing.
+2. Gemma selects a defined **read-only** `notifications.read_latest_whatsapp` tool rather than fabricating device state.
+3. An Android implementation enforces explicit Notification Listener permission and returns the newest *accessible* WhatsApp notification or a typed error. It does not claim full WhatsApp chat access.
+4. The assistant reads the selected result aloud locally, with no default Firebase/Core upload.
+5. Test denied/revoked access, missing or hidden notification content, cancellations, repeat turns, memory and lifecycle.
+
+No sending/replying, wake-word background activation, Firebase integration, nutrition/photo dashboard or home-Core dependency is required for this slice. Existing nutrition/photos data and merged code are preserved for later optional local tools. Core and Firebase remain candidate asynchronous enrichment architecture.
+
+**Roadmap accounting:** Stage 0 remains the last `Complete` stage; Stage 1 Windows verification is outstanding and its priority is deferred. Stage 3 remains partial. Draft voice work is not merged completion evidence.
+
+---
+
+
+## Historical nutrition goal (paused)
 
 Deliver one end-to-end nutrition slice that proves Mosaic can:
 
@@ -11,7 +30,7 @@ Deliver one end-to-end nutrition slice that proves Mosaic can:
 5. generate an evidence-backed weekly nutrition Insight when the Windows home computer is available;
 6. deliver that durable Insight back to Android without depending on FCM for correctness.
 
-Nutrition remains the first slice because meal records are structured, relevant and easy to review manually. The meal model must remain ready for a future Inventory module inside `mosaic-android` without making Inventory a prerequisite for nutrition tracking.
+Nutrition was the originally selected first slice, but is no longer the product focus. Its canonical contracts remain available if a future tool benefits from them. The meal model must remain ready for a future Inventory module inside `mosaic-android` without making Inventory a prerequisite for nutrition tracking.
 
 ## Deployment assumptions
 
@@ -27,7 +46,7 @@ Nutrition remains the first slice because meal records are structured, relevant 
 - The VPS is not required for the first synchronization path.
 - Photo-assisted meal analysis is optional and should use a replaceable on-device adapter on capable Android hardware rather than requiring the home Core.
 
-## Phase 1 data path
+## Historical nutrition data path (paused)
 
 ```text
 Android manual or confirmed meal
@@ -63,7 +82,7 @@ Camera → MealAnalyzer → estimate → user review/correction → confirmed me
 
 The estimate is not trusted business data until confirmation.
 
-## Scope
+## Historical nutrition scope (paused)
 
 1. Define versioned meal, event, synchronization, Insight and Inventory-consumption contracts.
 2. Make Core installable and testable on Windows 11.
@@ -143,7 +162,7 @@ The meal contract supports:
 
 Inventory owns stock levels, purchases, expiry dates, conversions and final deduction decisions. The nutrition domain must not directly modify Inventory storage.
 
-## Implementation milestones
+## Historical implementation milestones (paused)
 
 ### 1. Contracts — ✅ complete for the initial slice
 
@@ -273,7 +292,7 @@ The model/runtime is not selected in Phase 1. Selection should follow measuremen
 
 Regardless of runtime, model output remains an estimate until the user confirms or corrects it. Only the resulting confirmed `MealRecord` becomes trusted history and enters the event outbox.
 
-## Acceptance criteria
+## Historical nutrition acceptance criteria (paused)
 
 Phase 1 is complete when all of the following are true:
 
