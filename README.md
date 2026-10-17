@@ -30,6 +30,7 @@ Firebase improves availability and multi-user readiness without replacing the lo
 ## Documents
 
 - [`ROADMAP.md`](ROADMAP.md) — staged implementation plan, current focus, completion gates, and repository ownership
+- [`docs/DEVELOPMENT_WORKFLOW.md`](docs/DEVELOPMENT_WORKFLOW.md) — mandatory GitHub Actions build/test gate before asking for local APK compilation or installation
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — current system overview and source-of-truth boundaries
 - [`docs/architecture/README.md`](docs/architecture/README.md) — architecture document index
 - [`docs/architecture/FIREBASE_SYNC.md`](docs/architecture/FIREBASE_SYNC.md) — Firebase identity and event-relay decision
