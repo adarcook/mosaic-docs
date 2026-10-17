@@ -4,6 +4,14 @@ All cross-component business records and synchronization events use versioned ty
 
 The primary Android-to-Core transport is asynchronous synchronization through Firebase, not a required direct REST connection. Direct HTTP endpoints may still exist for local development, optional interactive access or narrowly scoped services, but Android meal recording must not depend on Core reachability.
 
+## Local Android agent tools (active product boundary)
+
+The current first product milestone is **not a cross-component wire event**. A local Hebrew voice turn selects a permission-scoped tool, executes it on Android, receives a typed result, and responds through local TTS. This does not require Firestore, the home Core, an event schema or a server endpoint. See [voice-first decision](VOICE_FIRST_PRODUCT_DIRECTION.md).
+
+The first candidate is a read-only `notifications.read_latest_whatsapp` tool, with a versioned contract for arguments and success / permission-denied / no-accessible-message / privacy-restricted outcomes. The Android adapter owns the deterministic notification lookup and permission checks. The model cannot obtain broader device access by inventing arguments. Only content available through authorized Android notifications may be returned; there is no promise of WhatsApp conversation-history access.
+
+Future nutrition and photo capabilities may be exported as tools without requiring dedicated dashboard/navigation flows. Any confirmed domain mutations that eventually synchronize across devices must continue to follow `mosaic-contracts` IDs, revisions, ownership and immutable events. No new wire schema is approved by this documentation-only pivot.
+
 ## Optional and local REST endpoints
 
 Potential local or service endpoints include:
