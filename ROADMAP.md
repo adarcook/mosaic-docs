@@ -599,4 +599,6 @@ A real completed device turn and its failure tests are required. Passing CI or h
 
 ## Working rule
 
+**Build-first delivery gate:** every new version or implementation slice must be compiled and tested on GitHub Actions for the *latest PR head commit* before the user is asked to build/install locally. Fix CI errors in GitHub first; GitHub success does not replace real-device testing or APK signer checks. See [development workflow](docs/DEVELOPMENT_WORKFLOW.md).
+
 The project has one primary implementation focus at a time. A stage is marked ✅ **Complete** only when its completion gate is verified and the relevant implementation is merged into `main`.
