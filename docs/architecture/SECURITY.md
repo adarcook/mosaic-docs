@@ -35,6 +35,14 @@ For meal capture specifically:
 - a remote HTTP/model adapter may exist for development or an explicitly selected fallback, but it is not required for the production capture path;
 - remote processing is permitted only through an explicit policy that minimizes payloads and records the provider, purpose, model and retention assumptions.
 
+## Local tool execution boundary
+
+The on-device voice agent is the primary user-facing product, but **the LLM is not the authority**. Every tool has a defined ID/version, typed input and result, explicit Android capability checks, bounded execution, and a read-only or side-effecting classification. The dispatcher validates requests before calling deterministic Android code. Unavailable permissions/content produce errors; no fabricated result or silent cloud fallback is allowed.
+
+Initial tool: `notifications.read_latest_whatsapp` is **read-only** and can access only WhatsApp notification content currently available through Android's granted Notification Listener surface. It cannot guarantee message history, hidden text, or app-private conversations. Notification texts and transcripts remain local by default; diagnostics should avoid raw content. No replies, sends, deletes or other effects are implied. Screen lock, Bluetooth and notification privacy rules still apply.
+
+Nutrition and photo features are paused as first-class product work. If later made available as tools, they require their own explicit permissions, data minimization, user confirmation for mutations and retention policy; no broad automatic gallery scan or food data upload is introduced by this pivot.
+
 ## Android voice and notification handling
 
 The local assistant uses least privilege:
