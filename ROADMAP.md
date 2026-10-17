@@ -10,52 +10,30 @@ This roadmap defines the order in which Mosaic will be built. Each stage has a c
 
 ## Product direction
 
-Mosaic is not initially an always-available **remote Core conversational server**. The Android device may, however, provide an always-available local assistant experience without requiring the Windows Core to be online.
+**Active direction as of 2026-10-17: voice-first, tool-first Mosaic on Android.** The earlier nutrition-first roadmap remains historical implementation context, not the current feature order. See [Voice-first product decision](docs/architecture/VOICE_FIRST_PRODUCT_DIRECTION.md).
 
 ```text
-Immediate local experience
-Android device
-  ├── Room operational data
-  ├── manual capture and correction
-  ├── deterministic calculations and goals
-  ├── low-power wake-word detection ("Mosaic")
-  ├── on-demand local ASR → agent → TTS
-  ├── notification/context collectors with explicit permissions
-  └── replaceable on-device model assistance
+Explicit user activation (wake word later)
+  → local Hebrew ASR
+  → local Gemma agent and typed tool selection
+  → permission-scoped Android tool
+  → structured result
+  → local BlueTTS answer
 
-Asynchronous intelligence
-Android confirmed events
-    ↓
-Firebase Auth + Firestore event relay
-    ↓
-Mosaic Core on Windows 11
-    ↓
-periodic / catch-up deep analysis and durable Insights
-    ↓
-Firestore Insight inbox
-    ↓
-FCM notification signal
-    ↓
-Android displays the Insight
+Future optional context:
+domain tools (photos, nutrition, swimming, local memory)
+and asynchronous Android → Firebase → Windows Core → Insights
 ```
 
-Android owns the immediate operational experience. Meal recording, correction, daily calorie/protein totals and remaining-goal calculations must work while Firebase is unavailable and the home computer is off.
+The first user-visible job is reading the latest **accessible WhatsApp notification** aloud by explicit request, without claiming unrestricted chat-history access. Start read-only. Add actions with side effects only behind separate permissions and confirmation.
 
-The longer-term Android direction also includes a local voice-agent loop: a low-power wake-word detector may listen for an explicit activation phrase such as "Mosaic"; ASR, the local agent model and TTS wake only on demand. With user-granted Android permissions, the agent may query local context such as recent notifications and read selected messages aloud. Sensitive content remains local by default, and externally visible or destructive actions require policy checks and confirmation according to their risk.
+**Paused as product focus:** nutrition capture/dashboards, photo gallery/indexing, fitness/swimming dashboards, Firebase/Windows Core enrichment and meal-analysis UI. Do not delete merged code, canonical contracts or user records. Future useful domain capabilities should be exposed as local tools where appropriate, not built into prerequisite standalone app flows.
 
-Photo-assisted meal analysis is an optional capture aid. The preferred production direction is a replaceable on-device analyzer on capable Android hardware. Model output remains an estimate until the user confirms or corrects it; only confirmed structured meal data becomes trusted history.
+Android must handle supported local requests without Internet or Windows Core. Background wake-word behavior is deferred until supported Android assistant/background APIs and privacy controls are validated. Large models are on demand, not permanently loaded.
 
-Core performs deeper historical and cross-domain analysis when the home computer is available. Its initial user-facing outputs are weekly summaries, detected patterns and recommendation candidates rather than remote conversational answers or an always-on meal-analysis endpoint.
+The architecture for immutable events, Firebase identity/relay, offline Windows Core catch-up and evidence-backed Insights remains available for later use; this pivot does not mark those stages Complete.
 
-Firebase provides identity, asynchronous synchronization and notification delivery. It does not replace local Core storage, `mosaic-contracts`, Android Room or the durable Insight records stored before an FCM signal is sent.
-
-See:
-
-- [`docs/architecture/SYSTEM_ARCHITECTURE.md`](docs/architecture/SYSTEM_ARCHITECTURE.md)
-- [`docs/architecture/FIREBASE_SYNC.md`](docs/architecture/FIREBASE_SYNC.md)
-- [`docs/architecture/PASSIVE_INTELLIGENCE.md`](docs/architecture/PASSIVE_INTELLIGENCE.md)
-- [`docs/architecture/API_AND_EVENTS.md`](docs/architecture/API_AND_EVENTS.md)
-- [`docs/architecture/SECURITY.md`](docs/architecture/SECURITY.md)
+See also [system architecture](docs/architecture/SYSTEM_ARCHITECTURE.md), [passive/Core separation](docs/architecture/PASSIVE_INTELLIGENCE.md), [security](docs/architecture/SECURITY.md), [Firebase sync](docs/architecture/FIREBASE_SYNC.md) and [API/events](docs/architecture/API_AND_EVENTS.md).
 
 ## Current status
 
@@ -68,7 +46,7 @@ Status tracks completion gates, not merely the presence of code. Open PR work re
 | 0. Architecture and initial contracts | ✅ Complete | Initial architecture and Phase 1 contracts are merged into `main`. |
 | 1. Windows Core foundation | 🟡 Partial / verification required | Foundation from `mosaic-core` PR #1 is merged into `main`; clean Windows 11 verification is still required. |
 | 2. Firebase identity and relay foundation | ⬜ Not started | Firebase project, Auth, Firestore paths, Rules and emulator tests are not implemented. |
-| 3. Android meal recording and local dashboard | 🟡 Partial / verification required | Room/dashboard foundations are in `main`; PR #18 adds local goals/progress and stacked PR #19 adds offline manual capture plus the analyzer boundary. Both PRs remain open. |
+| 3. Android meal recording and local dashboard | 🟡 Partial / verification required | Room/dashboard foundations are in `main`; PRs #18–#20 have merged. Draft PR #21 for canonical local revisions was closed without merge; Stage 3 remains partial and is now deferred. |
 | 4. Android event outbox and Firebase publishing | ⬜ Not started | Immutable contract events, offline queue and authenticated publishing are not implemented. |
 | 5. Core Firebase consumer and contract validation | ⬜ Not started | Core Firebase consumption is not implemented. |
 | 6. Durable local event storage | ⬜ Not started | Idempotent accepted-event storage, ownership and recovery are not implemented. |
@@ -76,7 +54,7 @@ Status tracks completion gates, not merely the presence of code. Open PR work re
 | 8. Scheduled analysis and Insight generation | ⬜ Not started | Weekly, catch-up-safe, evidence-backed Insight generation is not implemented. |
 | 9. Insight synchronization and Android inbox | ⬜ Not started | Durable Core-to-Android Insight delivery through Firestore is not implemented. |
 | 10. FCM notification delivery | ⬜ Not started | Selective push signaling and device preferences are not implemented. |
-| 11. Meal analysis assistance | 🟡 Partial / deferred | A legacy server analyzer exists; Android PR #19 introduces a replaceable `MealAnalyzer` boundary and targets on-device inference later. No production on-device runtime/model is selected yet. |
+| 11. Meal analysis assistance | 🟡 Partial / deferred | The replaceable Android `MealAnalyzer` boundary from PR #19 is merged. Production meal analysis remains deferred as an optional future tool. |
 | 12. Inventory module inside Android | ⬜ Not started | Uses the integration boundary established by meal contracts. |
 | 13. Fitness and swimming domains | 🟡 Partial / deferred | Android training foundations exist in `main`; the cross-domain event, analysis and Insight completion gate is not implemented. |
 | 14. Optional VPS services | ⬜ Not started | Added only for capabilities Android, Firebase and Core do not cover. |
@@ -84,11 +62,18 @@ Status tracks completion gates, not merely the presence of code. Open PR work re
 
 ## Current focus
 
-> Finish and merge the smallest reliable **offline nutrition experience on Android** before adding Firebase: local goals/progress, manual meal capture, correction of saved meals, canonical meal IDs/revisions and restart verification. Stage 1 Windows verification remains outstanding in parallel; after the local Stage 3 gate is stable, continue with Stage 2 Firebase identity/security and the asynchronous event path.
+> **First real-world tool:** reliable spoken Hebrew request → local agent → authorized **read-only** WhatsApp notification lookup → local spoken response on Pixel 10 Pro.
 
-This is a deliberate product-focus choice. Stage numbering still describes architectural capabilities and completion gates; it does not require every code change to be performed strictly in numeric order when an earlier local product dependency can be completed independently.
+- Stabilize the existing Zipformer/Gemma/BlueTTS draft voice chain in repeated real-device turns, including failures and cancellation.
+- Build a narrow Android notification-access adapter that can return typed success, no-access, no-notification and redacted/hidden-content results. Message availability is limited to content Android exposes through notifications.
+- Wire a single explicit tool into the local agent. No background scraping, arbitrary WhatsApp database access, sending messages or uploads to Core/Firebase.
+- Expand through one reviewable tool slice at a time. Preserve historical nutrition/photo code without spending active product work on their UIs.
+
+The previously recorded stages are retained for traceability, with **Stage 0 last Complete** and Stage 1 Windows verification still outstanding. Deferred stages remain not Complete. The current product milestone is independent of Stage 3 nutrition.
 
 ---
+
+
 
 ## Stage 0 — Architecture and initial contracts — ✅ Complete
 
@@ -184,7 +169,7 @@ Firebase begins after Android has a stable confirmed local record. Meal capture 
 
 ---
 
-## Stage 3 — Android meal recording and local dashboard — 🟡 Partial / verification required
+## Stage 3 — Android meal recording and local dashboard — 🟡 Partial / deferred
 
 ### Goal
 
@@ -210,6 +195,8 @@ Provide a useful offline nutrition experience before Core or Firebase analysis i
 - capture UI that does not require a model or Core connection.
 
 ### Current state — 2026-09-06
+
+> Historical snapshot: PRs #18, #19 and #20 subsequently merged, while #21 was closed unmerged. This Stage 3 work is paused in favor of the on-device agent, and remains partial.
 
 Already in `mosaic-android/main`:
 
@@ -592,37 +579,23 @@ Every new domain must define ownership, contracts, cloud exposure, permissions, 
 
 ## Immediate implementation sequence
 
-The current product work intentionally completes the offline Android nutrition experience before Firebase. Stage numbers remain stable; this list reflects execution focus rather than renumbering the architecture.
+The **active sequence** is a voice-agent product slice, not a renumbering or completion of the original infrastructure stages:
 
-```text
-✅ 0. Architecture and initial contracts
-🟡 1. Verify the merged Windows Core foundation on Windows 11
-🟡 3. Finish and merge offline Android nutrition capture, correction and canonical local records  ← current focus
-🟡 Q. Android Fit tests are being added to CI in PR #19; Core/Contracts quality gates remain
-⬜ 2. Establish Firebase Auth, Firestore paths and Security Rules
-⬜ 4. Build the Android event outbox and Firebase publishing
-⬜ 5. Consume and validate Firebase events in Core
-⬜ 6. Persist events idempotently in Core
-⬜ 7. Build meal projection and correction history
-⬜ 8. Generate a weekly evidence-backed Insight
-⬜ 9. Synchronize the Insight to the Android inbox
-⬜ 10. Signal the Insight selectively through FCM
-```
+1. Verify the current on-device spoken-turn candidate on Pixel in repeated safe real-world requests (ASR accuracy, final word, latency, TTS, memory and cleanup).
+2. Introduce a minimal typed, permission-scoped, read-only Android notification tool.
+3. Connect Gemma's tool choice and result handling; speak the last accessible WhatsApp notification through local TTS.
+4. Test permission denial, no notification, sensitive lock-screen content, cancellation, and repeatability.
+5. Add subsequent local tools only when they unlock actual user actions; evaluate wake-word/assistant activation separately.
 
-Stage 11 on-device meal assistance can advance incrementally after the Stage 3 local record boundary is stable. Its adapter boundary may exist earlier, but a production runtime/model is not required for Stage 3 completion.
+**Deferred, not abandoned:** Stage 1 Windows Core verification, nutrition and photos UI, Firebase event path, meal projections, periodic Core analysis, Inbox/FCM and broader domain capabilities. Their status gates remain unchanged until actual verified implementation is merged to `main`.
 
 ## First useful product milestone
 
-The first product milestone is reached when:
+A user on the Pixel can explicitly start a session, ask in Hebrew to read the latest WhatsApp message, have the local agent invoke an authorized Android notification tool, and hear a spoken result — or a truthful no-access / no-message response — **without the home computer or cloud**. No reply/send/delete action is authorized by this milestone.
 
-1. Android records and corrects meals offline and immediately shows daily calorie/protein totals and remaining configured goals.
-2. Events synchronize asynchronously through Firebase.
-3. Core catches up when the Windows computer becomes available.
-4. Core generates one evidence-backed weekly Insight from confirmed data.
-5. The Insight appears durably in the Android inbox.
-6. An optional FCM notification points to that Insight without being required for delivery correctness.
+A real completed device turn and its failure tests are required. Passing CI or having a draft PR alone is not completion.
 
-On-device meal analysis improves capture convenience but is not required for this milestone's correctness.
+
 
 ## Working rule
 
