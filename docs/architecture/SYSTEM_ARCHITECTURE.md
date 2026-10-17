@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-Mosaic is a local-first personal intelligence platform that creates a reliable, private and explainable view across the user's information.
+Mosaic is a local-first personal intelligence platform. **The active product is now an on-device Hebrew voice agent that performs useful tasks through permission-scoped Android tools**, starting with reading the last accessible WhatsApp notification aloud. Earlier nutrition and photo UX efforts are parked, not destroyed. See [the voice-first product decision](VOICE_FIRST_PRODUCT_DIRECTION.md).
 
 It is not a single large application and it is not a foundation model trained from scratch. It is a system built around:
 
@@ -23,9 +23,9 @@ Mosaic Core is primarily an asynchronous personal-intelligence engine. It is not
 ## 2. Architectural principles
 
 1. **Local-first intelligence** — durable personal history, projections and cross-domain intelligence live on the user-controlled home computer.
-2. **Domain ownership** — each domain app owns its operational records and user experience.
-3. **Immediate mobile utility** — recording, correction and deterministic daily calculations are performed from local Android data and do not depend on Core availability.
-4. **On-device assistance for immediate capture** — when model assistance is useful for a latency-sensitive mobile workflow such as meal-photo analysis, the preferred production path is a replaceable on-device adapter on capable hardware.
+2. **Tool-first interaction** — the agent is the primary experience. Optional domain adapters own their records and deterministic operations, and expose explicit typed tools when useful; standalone domain dashboards are not MVP prerequisites.
+3. **Immediate mobile utility** — read-only local context tools and their permission checks run on Android without Core or Firebase. Future domain calculations remain deterministic rather than LLM guesses.
+4. **Optional domain assistance** — nutrition capture, photo indexing and multimodal analysis can later plug into the agent through replaceable local adapters, but are not on the current critical path.
 5. **Asynchronous Core** — Core synchronizes, catches up and performs deeper historical analysis when the home computer is available.
 6. **Immutable synchronization events** — corrections create new revisions instead of overwriting historical events.
 7. **Durable Insights before notifications** — an Insight is stored before any push signal is sent.
@@ -37,6 +37,9 @@ Mosaic Core is primarily an asynchronous personal-intelligence engine. It is not
 13. **Permission-scoped local agency** — notification access, microphone access and Android actions are explicit capabilities. Reading local context does not automatically authorize sending, deleting, purchasing or other externally visible/destructive actions.
 
 ## 3. High-level topology
+
+The diagram includes both **active** local voice components and **deferred** historical nutrition/Firebase/Core components. The first shipping slice is foreground voice → Gemma → read-only notification tool → BlueTTS; wake-word activation, domain dashboards and cloud enrichment are later options, not active MVP dependencies.
+
 
 ```mermaid
 flowchart LR
@@ -120,9 +123,9 @@ The local assistant path is also separate from the asynchronous Core path. Wake-
 
 ### 4.1 Mosaic Android
 
-Mosaic Android is the operational client and remains useful offline.
+Mosaic Android is the primary local agent and must remain useful offline. Its immediate responsibilities are permission-scoped tool dispatch, ASR/LLM/TTS orchestration, explicit user activation and truthful results from Android APIs. Previously built domain data layers are preserved but not the active product.
 
-It owns:
+For optional future domains it already owns or may own:
 
 - Room entities for meals, measurements, workouts, Inventory and other mobile domains;
 - local creation, correction and display workflows;
@@ -138,26 +141,20 @@ Android does not need Core to answer simple questions that can be calculated fro
 
 #### Local voice-agent boundary
 
-The intended local assistant flow is:
+The first tested path starts with a user-triggered **foreground** voice turn; background/wake-word support is a separate later slice:
 
 ```text
-low-power wake-word detector
-  → explicit "Mosaic" activation
-  → on-demand local ASR
-  → local agent reasoning / tool selection
-  → permission-scoped Android tools and local retrieval
-  → local TTS response
+explicit foreground voice turn (wake word later)
+  → local Hebrew ASR
+  → local Gemma intent / typed tool selection
+  → Android tool dispatcher checks permission and side-effect policy
+  → typed result / meaningful unavailable error
+  → local BlueTTS response
 ```
 
 The LLM is not kept continuously active. The wake-word component should be independently replaceable and optimized for low memory, thermal and battery cost.
 
-Initial local tools may include:
-
-- query recent Room-backed domain records;
-- query explicitly authorized Android notification history/context;
-- search locally indexed photos and metadata;
-- read selected notification/message text aloud through TTS;
-- open the relevant application or Mosaic screen.
+The **first** tool is read-only access to the latest **currently accessible WhatsApp notification**, gated by explicit Android notification-listener approval. It cannot promise arbitrary historical WhatsApp conversations. Later optional tools may query Room-backed nutrition, local photos, workouts, calendar and other granted context.
 
 Actions that create external side effects, including sending a message, deleting data, making purchases or changing protected settings, must pass an explicit action policy and require confirmation when appropriate.
 
@@ -405,19 +402,13 @@ Core starts or reaches a scheduled analysis window
 → the user opens the full Insight from the inbox
 ```
 
-## 7. Example first useful outcome
+## 7. Example first useful outcome — active product
 
-Android immediately displays:
+A user opens the Mosaic voice experience and asks in Hebrew to read the last WhatsApp message. The local agent dispatches a permission-checked read-only notification lookup, then reads its result through BlueTTS. If notification access is unavailable or the latest message content cannot be found, Mosaic says so instead of inventing a message.
 
-> 108 g protein recorded today; 22 g remain to reach the configured target.
+The first device acceptance gate covers a completed spoken loop, repeated use, last-word integrity, permissions, no-notification cases, lock-screen privacy, cancellation and worker cleanup. Neither Firebase nor the Windows Core is required.
 
-The user may have entered the meal manually or confirmed an on-device estimate; the daily result is deterministic either way because it is calculated from confirmed Room records.
-
-After a weekly Core run, Mosaic may publish:
-
-> You reached your protein target on 5 of 7 days. Both missed days followed swimming sessions, and most of the shortfall occurred at dinner.
-
-The weekly Insight links to the exact meal and workout records used. The user can receive a notification that the summary is ready, but the summary remains available even if the notification is never delivered.
+**Historical deferred capability:** Android nutrition records, deterministic daily protein totals, asynchronous weekly Core Insights, photo indexing and gallery workflows remain available as future domain/tool adapters; they do not define this initial milestone.
 
 ## 8. Multiple users and households
 
@@ -438,7 +429,7 @@ The preferred direction is a local assistant that can be activated by an explici
 
 Interactive access to the deeper Windows Core remains optional and deferred. It may later provide historical or compute-heavy answers when Core is reachable, but the Android assistant must not depend on it for ordinary local actions.
 
-## 10. Non-goals for the first passive slice
+## 10. Non-goals for the voice-first slice and retained passive architecture
 
 - exposing Mosaic Core as a public internet server;
 - requiring the phone and home computer to be online simultaneously;
@@ -451,6 +442,8 @@ Interactive access to the deeper Windows Core remains optional and deferred. It 
 - keeping a general-purpose LLM continuously active only to detect the wake word;
 - covert or permission-bypassing microphone/notification collection;
 - fully automatic destructive actions;
+- shipping nutrition/photo dashboards as prerequisites for the first usable voice agent;
+- claiming full WhatsApp chat-history access from Android notifications;
 - automatic stock deduction from uncertain meal estimates;
 - complex multi-tenant SaaS administration;
 - real-time model-backed conversation from every location.
