@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted as the primary interaction model for Mosaic Core.
+Accepted as the architectural interaction model for **deferred Mosaic Core**. The **current user-facing priority** is the on-device Android voice agent and its tools. See [voice-first decision](VOICE_FIRST_PRODUCT_DIRECTION.md).
 
 Mosaic Core is not assumed to be continuously reachable from the phone. The home computer may be offline, asleep or disconnected, so the system must remain useful without treating Core as an always-available conversational server.
 
@@ -11,15 +11,15 @@ Mosaic Core is not assumed to be continuously reachable from the phone. The home
 Mosaic is split into two complementary experiences. "Passive Core" does not mean the phone itself must be passive: Android may provide an always-available local voice assistant while Core remains asynchronous.
 
 ```text
-Android local experience
-- manual capture and correction
-- immediate deterministic calculations
-- offline dashboard
-- current goals and progress
-- low-power wake-word activation
-- on-demand local ASR / agent / TTS
-- permission-scoped notification and device context
-- optional on-device multimodal model assistance
+Android primary experience (active)
+- explicit foreground voice turn (wake word later)
+- local Hebrew ASR → Gemma tool selection → typed result → BlueTTS
+- permission-scoped Android tool access, beginning with recent WhatsApp notifications
+- truthful no-access / no-notification handling
+
+Future optional domains
+- nutrition, photos, workouts and other local data accessed by tools
+- deterministic calculations and user-confirmed records
 
 Mosaic Core asynchronous intelligence
 - periodic synchronization
@@ -31,32 +31,21 @@ Android owns the immediate operational experience. Core periodically analyzes sy
 
 This separation is intentional: model-assisted meal capture may use a local model on the phone, while deeper weekly pattern analysis remains a Core responsibility.
 
-## Immediate Android capabilities
+## Immediate Android capabilities — current focus
 
-The Android application should work locally, without requiring Core or Firebase, for:
+Mosaic should run useful actions from natural Hebrew requests through **real, explicit Android tools**, not require a separate nutrition or photos app workflow first. The first tool reads the latest *accessible* WhatsApp notification with user-granted Notification Listener access; it does not scrape WhatsApp's database or guarantee full message history. It must return structured results and distinguish permission denied, unavailable and empty cases. The answer is spoken locally.
 
-- manual meal creation and correction;
-- protein consumed today;
-- protein remaining against the selected target;
-- recorded calories and other nutrition totals;
-- daily calorie and protein goal progress;
-- latest weight and measurements;
-- recent meals and workouts;
-- immediate updates after a record changes.
-
-These deterministic calculations are projections over local records. They do not require a language model.
+Previously implemented Room-backed nutrition, workout and photo capabilities are preserved for possible future tool adapters, but are not active milestones. Deterministic totals continue to belong in code/SQL if those tools are built.
 
 ## On-device voice assistant
 
 Mosaic may provide an always-available local assistant experience on Android without keeping a general-purpose LLM active continuously.
 
-Preferred runtime shape:
+Preferred **eventual** runtime shape (initial voice turn is foreground/user-triggered; wake word comes later):
 
 ```text
-microphone
+user activation or future low-power wake-word detector ("Mosaic")
   ↓
-low-power wake-word detector ("Mosaic")
-  ↓ activation only
 local ASR
   ↓
 local agent / tool router
@@ -89,7 +78,7 @@ A representative interaction is:
 
 The local assistant may later use the same tool boundary for photo search, local memory retrieval, calls, reminders and application navigation.
 
-## On-device meal-analysis assistance
+## On-device meal-analysis assistance (deferred optional tool)
 
 Meal-analysis assistance is an optional enhancement to capture, not a replacement for trusted records.
 
@@ -305,19 +294,8 @@ Insights and device registrations are always user-scoped. A household Core insta
 
 Shared or household insights require an explicit audience model rather than copying one user's private result into another user's namespace.
 
-## Phase 1 boundaries
+## Voice-first first milestone and deferred Core boundaries
 
-The first useful slice should prove:
+The current first useful slice is: a reliable local Hebrew spoken turn; a permission-checked, read-only notification tool selected through the agent; and a local spoken reply (or explicit no-access/no-message result). No cloud or Windows Core dependency.
 
-1. Android can record and correct meals offline and calculate current daily nutrition totals locally.
-2. Configured calorie and protein goals and remaining amounts persist locally.
-3. Core can synchronize when available without being publicly reachable.
-4. Core generates a weekly evidence-backed nutrition Insight from confirmed data.
-5. The Insight is written to the correct Firebase user path.
-6. Android receives and stores the Insight.
-7. An FCM notification can open the exact stored Insight.
-8. Reprocessing or retrying does not create duplicate Insights or duplicate notification records.
-
-On-device meal analysis may be added to reduce manual entry once the confirmed local record model is stable. It is not required for the correctness of the passive loop.
-
-Interactive remote Core question answering, real-time Core availability, mandatory remote meal analysis and autonomous high-frequency notifications are explicitly deferred. On-device wake-word interaction and local tool use are a separate capability and do not imply unrestricted autonomy.
+Core's original first passive slice — syncing meals, calculating weekly nutrition Insights, delivering them through Firestore and signaling with FCM — is **deferred**, not complete or deleted. When revived, the durable-before-notification, idempotency, provenance and per-user isolation rules in this document still apply. Wake-word activation and additional side-effecting actions are separate milestones.
