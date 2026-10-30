@@ -10,10 +10,10 @@ This roadmap defines the order in which Mosaic will be built. Each stage has a c
 
 ## Product direction
 
-**Active direction as of 2026-10-17: voice-first, tool-first Mosaic on Android.** The earlier nutrition-first roadmap remains historical implementation context, not the current feature order. See [Voice-first product decision](docs/architecture/VOICE_FIRST_PRODUCT_DIRECTION.md).
+**Active direction:** voice-first, tool-first Mosaic on Android (2026-10-17), with **Voice v0.1 hands-free personal beta** prioritized on 2026-10-30. The earlier nutrition-first roadmap remains historical implementation context, not the current feature order. See [Voice-first product decision](docs/architecture/VOICE_FIRST_PRODUCT_DIRECTION.md) and [Voice v0.1 release gate](docs/releases/VOICE_V1_HANDSFREE_ACCEPTANCE.md).
 
 ```text
-Explicit user activation (wake word later)
+Explicit opt-in screen-off wake (release validation pending)
   → local Hebrew ASR
   → local Gemma agent and typed tool selection
   → permission-scoped Android tool
@@ -29,7 +29,7 @@ The first user-visible job is reading the latest **accessible WhatsApp notificat
 
 **Paused as product focus:** nutrition capture/dashboards, photo gallery/indexing, fitness/swimming dashboards, Firebase/Windows Core enrichment and meal-analysis UI. Do not delete merged code, canonical contracts or user records. Future useful domain capabilities should be exposed as local tools where appropriate, not built into prerequisite standalone app flows.
 
-Android must handle supported local requests without Internet or Windows Core. Background wake-word behavior is deferred until supported Android assistant/background APIs and privacy controls are validated. Large models are on demand, not permanently loaded.
+Android must handle supported local requests without Internet or Windows Core. Opt-in screen-off wake and fast, model-independent audible acknowledgement are now v0.1 acceptance requirements. The existing Android assistant + signed companion wake experiment is not yet a verified daily-use solution; foreground-service restrictions, private lock-screen behavior and battery drain must pass device testing. Large models remain on demand, not permanently loaded.
 
 The architecture for immutable events, Firebase identity/relay, offline Windows Core catch-up and evidence-backed Insights remains available for later use; this pivot does not mark those stages Complete.
 
@@ -60,14 +60,16 @@ Status tracks completion gates, not merely the presence of code. Open PR work re
 | 14. Optional VPS services | ⬜ Not started | Added only for capabilities Android, Firebase and Core do not cover. |
 | 15. Broader personal intelligence | ⬜ Not started | Photos, documents, projects and controlled automations. |
 
-## Current focus
+## Current focus — Voice v0.1 personal beta
 
-> **First real-world tool:** reliable spoken Hebrew request → local agent → authorized **read-only** WhatsApp notification lookup → local spoken response on Pixel 10 Pro.
+> **First shippable experience:** user opts in once while unlocked, puts the phone in their pocket, says “מוזאיק” with the screen off, promptly hears a pre-rendered acknowledgement, then hears a truthful ready cue and completes a local spoken read-only WhatsApp-notification request without touching the phone.
 
-- Stabilize the existing Zipformer/Gemma/BlueTTS draft voice chain in repeated real-device turns, including failures and cancellation.
-- Build a narrow Android notification-access adapter that can return typed success, no-access, no-notification and redacted/hidden-content results. Message availability is limited to content Android exposes through notifications.
-- Wire a single explicit tool into the local agent. No background scraping, arbitrary WhatsApp database access, sending messages or uploads to Core/Firebase.
-- Expand through one reviewable tool slice at a time. Preserve historical nutrition/photo code without spending active product work on their UIs.
+**Release gate:** [Voice v0.1 hands-free acceptance](docs/releases/VOICE_V1_HANDSFREE_ACCEPTANCE.md). Current merged Android 0.22 already has experimental wake, assistant-role, foreground turn service and cached feedback; these are not proof of reliable screen-off use. The stacked #50 → #51 → #52 tool-agent PRs are open and unmerged.
+
+1. Instrument and verify wake-detected → acknowledgement latency and ready-cue → genuinely available capture. Do not block feedback on Gemma/BlueTTS model loading.
+2. On the Pixel 10 Pro, verify sustained screen-off wake, no-touch full turn, safe locked notification handling, cancellation and repeated rearm; measure false wakes and battery drain.
+3. Verify the integrated ASR → typed tool → Gemma → TTS flow, failure states, build/signing and data-preserving installation.
+4. Review and merge only current validated dependencies (#50, #51, #52 in order), then tag the v0.1 personal beta when all specified physical acceptance gates pass. Old experimental draft PRs and optional bridge #47 are not automatically release scope.
 
 The previously recorded stages are retained for traceability, with **Stage 0 last Complete** and Stage 1 Windows verification still outstanding. Deferred stages remain not Complete. The current product milestone is independent of Stage 3 nutrition.
 
