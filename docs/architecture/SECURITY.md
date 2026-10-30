@@ -58,6 +58,12 @@ The local assistant uses least privilege:
 
 If Mosaic is selected as the device assistant, supported Android voice-interaction APIs should be used rather than bypassing background execution restrictions.
 
+## Voice v0.1 screen-off consent and responsiveness (2026-10-30)
+
+Hands-free standby is **opt-in**, not covert background recording. User selection of Mosaic as the Android assistant and microphone/notification grants happen through OS-controlled surfaces; a persistent Stop action must end microphone capture and service lifetime. Never attempt unauthorized background microphone start, boot-triggered microphone FGS startup or keyguard bypass. Wake waiting audio is transient/bounded and is not retained or uploaded. Diagnostic timing/status may be recorded without raw idle audio, private transcripts or notification payloads.
+
+Fixed acknowledgement/ready/processing cues are app-controlled local audio, not model output or authorization. Do not claim “ready” until the actual capture path is open; do not speak private notification content through a locked device. A recognized wake phrase is not speaker authentication. Battery/thermal and false-wake impacts of the CPU Zipformer listener must be measured and disclosed before calling the release suitable for daily use. See [v0.1 release gate](../releases/VOICE_V1_HANDSFREE_ACCEPTANCE.md).
+
 ## Android media handling
 
 Meal photos captured for analysis should remain in application-controlled temporary storage unless the user explicitly chooses otherwise.
