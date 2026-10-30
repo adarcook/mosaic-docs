@@ -87,3 +87,24 @@ VPS jobs receive only the required input, use short-lived credentials, store tem
 ## Secrets
 
 Use OS keychains or a dedicated secrets manager for the initial Windows and Android deployments. Maintain separate credentials per connector and environment, and support independent rotation and revocation. Container-specific secret mechanisms may be used only for optional services that actually run in containers later.
+## Headset route consent and privacy
+
+Headset wake requires explicit visible opt-in and microphone permission; pairing
+or wearing buds is not consent or user authentication. Retain the persistent
+Stop control, no idle PCM/transcript retention and existing locked-message refusal.
+Do not persist Bluetooth names, addresses or raw audio in diagnostics.
+
+Before enabling the route adapter declare MODIFY_AUDIO_SETTINGS; microphone FGS
+type/permissions and RECORD_AUDIO apply to the recording owner. Request
+BLUETOOTH_CONNECT through Android only if paired-device Bluetooth APIs need it;
+do not add scan/location access for AudioManager route selection. Bluetooth
+connectivity does not waive background microphone start, while-in-use or boot
+restrictions. Android 15 focus eligibility requires the top app or a running FGS.
+See [FGS types](https://developer.android.com/develop/background-work/services/fgs/service-types)
+and [Bluetooth permissions](https://developer.android.com/develop/connectivity/bluetooth/bt-permissions).
+
+Lost route, call/focus interruption, revocation or Stop must cease capture and
+private playback before cleanup. Never silently fall back to phone microphone or
+speaker; reconnect requires fresh route verification. The initial unwired lease
+changes no grants, enabled behavior, retention or signed IPC contract. Physical
+Pixel + Pixel Buds testing remains required before claiming screen-off support.

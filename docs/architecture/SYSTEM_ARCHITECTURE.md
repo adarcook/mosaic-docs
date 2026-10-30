@@ -453,3 +453,26 @@ Interactive access to the deeper Windows Core remains optional and deferred. It 
 - automatic stock deduction from uncertain meal estimates;
 - complex multi-tenant SaaS administration;
 - real-time model-backed conversation from every location.
+
+## 11. Headset microphone voice baseline
+
+Pixel Buds Pro 2 microphone wake with the phone far away within Bluetooth range
+is a baseline requirement, pending physical verification. API 31+ communication
+routing uses AudioManager.setCommunicationDevice with an enumerated HFP/SCO or
+LE headset sink. A2DP playback alone does not provide microphone capture, and
+selection acceptance does not prove active input or audible output. Observe
+communication-device changes and actual AudioRecord/AudioTrack routing.
+
+The first Android slice is a compiled, unwired route lease with bounded selection,
+focus/mode ownership and stop-before-release semantics. It introduces no wake IPC
+contract or enabled headset mode. Before integration, define one route owner
+across signed companion :wake, request capture and :tts, with explicit handoff,
+verified headset input before ready and continuous output checks through cached
+ack, answer and rearm. Never infer source identity from the output sink ID.
+Stop on route/focus loss; reconnect must revalidate eligibility and permissions.
+No silent phone-microphone or speaker fallback. Continuous HFP/LE capture may
+consume phone/buds power and affect media; measure before acceptance.
+
+Official Android references: [routing](https://developer.android.com/develop/connectivity/bluetooth/ble-audio/audio-manager),
+[AudioManager selection](https://developer.android.com/reference/android/media/AudioManager#setCommunicationDevice(android.media.AudioDeviceInfo)),
+[focus](https://developer.android.com/media/optimize/audio-focus).

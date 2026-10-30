@@ -602,3 +602,17 @@ A real completed device turn and its failure tests are required. Passing CI or h
 ## Working rule
 
 The project has one primary implementation focus at a time. A stage is marked ✅ **Complete** only when its completion gate is verified and the relevant implementation is merged into `main`.
+
+## Pixel Buds Pro 2 baseline requirement — 2026-10-31
+
+Headset-microphone wake is a required Voice baseline: with the phone outside
+acoustic pickup but within Bluetooth range, say “מוזאיק”, hear immediate cached
+feedback, dictate and hear the answer through the buds with the screen off.
+This is not yet verified or complete. Android's first slice introduces an unwired
+communication-route lease stacked on #57; #54 timing and #55 installation remain
+separate evidence, not headset acceptance. Next: coordinated companion/capture/TTS
+route ownership, verified input/output, opt-in and physical Pixel + buds trials.
+Require disconnect/focus/call/reconnect/Stop tests and matched phone/buds battery
+measurements before release. See [headset architecture](docs/architecture/SYSTEM_ARCHITECTURE.md#11-headset-microphone-voice-baseline)
+and [headset security](docs/architecture/SECURITY.md#headset-route-consent-and-privacy).
+No roadmap stage is promoted by this foundation.
