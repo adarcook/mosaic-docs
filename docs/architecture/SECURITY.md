@@ -108,3 +108,16 @@ private playback before cleanup. Never silently fall back to phone microphone or
 speaker; reconnect requires fresh route verification. The initial unwired lease
 changes no grants, enabled behavior, retention or signed IPC contract. Physical
 Pixel + Pixel Buds testing remains required before claiming screen-off support.
+
+Headset integration follow-up (2026-10-31): the visible mode choice defaults off.
+MODIFY_AUDIO_SETTINGS is declared; no scan, pairing or runtime Bluetooth grant is
+added. Route IDs/types are transient signed-IPC fields, not logged identities.
+Verify microphone route and unsilenced recording before ready or retained request
+audio; waiting PCM remains volatile. Feedback/TTS send silence until verified
+headset output and stop submitting speech on route loss. Stop ends saved consent;
+a fresh connection can restore listening only under existing consent, never resume
+a partial private request. No locked-notification readout is newly permitted.
+The debug-only owner setup runner sets only headset_mode and reports no acoustic
+pass; it cannot grant permissions or enable saved listening consent. Physical
+disconnect tests must inspect possible residual OS-buffered output before claiming
+no audible leakage. This supersedes the initial unwired-slice status above.

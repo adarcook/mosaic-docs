@@ -616,3 +616,10 @@ Require disconnect/focus/call/reconnect/Stop tests and matched phone/buds batter
 measurements before release. See [headset architecture](docs/architecture/SYSTEM_ARCHITECTURE.md#11-headset-microphone-voice-baseline)
 and [headset security](docs/architecture/SECURITY.md#headset-route-consent-and-privacy).
 No roadmap stage is promoted by this foundation.
+
+Pixel Buds implementation follow-up (2026-10-31): Android #58 now connects an
+opt-in foreground route owner across wake/capture/cached feedback/TTS, with a
+code10 companion requirement and actual input/output guards. Voice 0.27/code30
+and wake0.9/code10 are installation candidates, not physical release acceptance.
+The owner requested installation; exact-source CI, guarded deployment and acoustic
+results must be recorded separately. No stage is Complete from host tests.

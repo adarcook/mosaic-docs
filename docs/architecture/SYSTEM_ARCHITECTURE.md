@@ -476,3 +476,16 @@ consume phone/buds power and affect media; measure before acceptance.
 Official Android references: [routing](https://developer.android.com/develop/connectivity/bluetooth/ble-audio/audio-manager),
 [AudioManager selection](https://developer.android.com/reference/android/media/AudioManager#setCommunicationDevice(android.media.AudioDeviceInfo)),
 [focus](https://developer.android.com/media/optimize/audio-focus).
+
+Headset integration follow-up (2026-10-31): HeadsetRouteService now owns one
+foreground communication lease across companion :wake, request capture and :tts.
+Signed IPC carries an opt-in flag and transient sink/input IDs/type; controller
+requires companion code10 in headset mode. AudioRecord prefers and verifies the
+source before ready; communication AudioTrack output verifies the sink with silent
+pre-roll before speech, guards writes and pauses/flushes on rerouting. An early
+authenticated detection callback requests a model-independent 80ms ack; native
+cleanup/Binder-death still gates request handoff. Headset turns do not request
+screen wake. Ambiguous/missing headset routes pause; there is no app fallback.
+Audio routing callbacks are asynchronous, so disconnect leakage and screen-off
+reliability remain physical acceptance gates. These details supersede the initial
+unwired status above; no model/backend or cloud contract changes.
