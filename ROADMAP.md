@@ -623,3 +623,10 @@ code10 companion requirement and actual input/output guards. Voice 0.27/code30
 and wake0.9/code10 are installation candidates, not physical release acceptance.
 The owner requested installation; exact-source CI, guarded deployment and acoustic
 results must be recorded separately. No stage is Complete from host tests.
+
+Headset deployment outcome: implementation `c82b174` passed all five hosted gates,
+but installation on this computer stopped before adb install because the enrolled
+development signing key is absent and the existing local key does not match.
+Original computer is unavailable. Pixel remains Voice 0.26/code28 + wake0.8.2/code9;
+no runtime headset-mode/permission/data change or physical acceptance is claimed.
+See Android #58 ASR-42 evidence; resume with the original matching signer.
