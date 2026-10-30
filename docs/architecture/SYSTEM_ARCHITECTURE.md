@@ -38,7 +38,7 @@ Mosaic Core is primarily an asynchronous personal-intelligence engine. It is not
 
 ## 3. High-level topology
 
-The diagram includes both **active** local voice components and **deferred** historical nutrition/Firebase/Core components. The first shipping slice is foreground voice → Gemma → read-only notification tool → BlueTTS; wake-word activation, domain dashboards and cloud enrichment are later options, not active MVP dependencies.
+The diagram includes both **active** local voice components and **deferred** historical nutrition/Firebase/Core components. The v0.1 personal beta gate is opt-in, no-touch, screen-off wake → immediate fixed local feedback → actually-ready ASR capture → Gemma → read-only notification tool → BlueTTS; domain dashboards and cloud enrichment are not active dependencies. Wake/assistant code already exists experimentally, but is not yet physically accepted for daily use.
 
 
 ```mermaid
@@ -118,6 +118,12 @@ flowchart LR
 The mobile model adapter is deliberately separate from Core analysis. A future Android runtime may change without changing canonical contracts, Room ownership or the capture/review flow.
 
 The local assistant path is also separate from the asynchronous Core path. Wake-word detection is intentionally lightweight; detecting "Mosaic" activates the heavier ASR → agent → tool → TTS pipeline only for the duration of the interaction. The Windows Core is not required for this loop.
+
+### Voice v0.1 responsive hands-free boundary (2026-10-30)
+
+The first release is a **personal beta** focused on no-touch availability, not maximizing the tool catalog. Android holds only an explicitly enabled wake listener in standby. The wake event must receive prompt feedback from fixed, verified PCM without waiting for ASR/Gemma/TTS initialization. Handoff, microphone readiness and later processing must have distinct cues; the “speak” cue must not precede working capture. Models remain on demand and separately released. A selected Android `VoiceInteractionService` and foreground microphone service must obey Android role/permission/background restrictions and preserve keyguard privacy. The existing signed Zipformer CPU standby implementation requires empirical battery, false-wake, repeated screen-off and interruption measurements; it is not a proven DSP low-power hotword detector.
+
+Release conditions and non-goals are tracked in [Voice v0.1 acceptance](../releases/VOICE_V1_HANDSFREE_ACCEPTANCE.md). Passing a synthetic tool probe or merging individual voice PRs does not satisfy full phone acceptance.
 
 ## 4. Component responsibilities
 

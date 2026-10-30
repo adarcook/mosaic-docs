@@ -1,6 +1,6 @@
 # Voice-first, tool-first product direction (2026-10-17)
 
-**Status:** proposed in a Draft PR; not an accepted `main` decision until merged.
+**Status:** Active product direction, refined for a Voice v0.1 hands-free personal beta on 2026-10-30. Implementation and physical release acceptance are pending. See [release gate](../releases/VOICE_V1_HANDSFREE_ACCEPTANCE.md).
 
 ## Decision
 
@@ -13,15 +13,17 @@ This is a *priority and interface pivot*, not completion of the prior nutrition 
 ## Local agent path
 
 ```text
-User activates foreground voice session (wake word later)
-  → local Hebrew ASR (Zipformer candidate; Whisper fallback)
+User explicitly enables local standby/assistant role (Android-permitted)
+  → light, opt-in wake listener with screen off
+  → immediate, pre-rendered acknowledgement (no heavy engine)
+  → actually-ready capture cue and local Hebrew ASR (Zipformer candidate; Whisper fallback)
   → local Gemma tool planning / argument preparation
   → explicitly authorized Android tool dispatcher
   → typed tool result + controlled error handling
   → local BlueTTS response
 ```
 
-Initial interaction uses foreground, user-triggered recording. Wake word is a later slice and must respect Android assistant/background APIs. Do not keep large ASR/LLM/TTS engines running continuously.
+Earlier prototypes began with foreground, user-triggered recording. The **v0.1 product gate** is now no-touch wake and use with the screen off **after explicit owner setup**. The existing Android assistant + signed Zipformer wake companion and fixed PCM clips are experimental foundations, not proof of low power or reliability. Android assistant/background/FGS restrictions and lock-screen privacy remain binding. A wake acknowledgement and processing cue must be independent of Gemma/BlueTTS loading; a ready cue must follow actual capture readiness. Do not keep large ASR/LLM/TTS engines running continuously. See the measurable [v0.1 release gate](../releases/VOICE_V1_HANDSFREE_ACCEPTANCE.md).
 
 A local tool is an **execution boundary**, not just a prompt or a model hallucination:
 - fixed tool ID, description, version, typed arguments and result;
@@ -54,8 +56,8 @@ No sending, replying, deleting or external action is included. Those require sep
 - The future Android event outbox → Firebase → Windows Core → evidence-backed Insights architecture remains a possible *asynchronous enrichment path*, not a prerequisite for local agent tools. FCM remains a notification signal.
 - Do not add a VPS, expose home Core to the Internet, or replace Android permission and deterministic logic with LLM guesses to support the first tool.
 
-## Next small slice
+## Next small slice — 2026-10-30
 
 Repository: `adarcook/mosaic-android`.
 
-After verifying the current voice candidate in multiple real Pixel turns, implement the minimal read-only Android notification tool boundary and permission/on-device tests, then wire its structured result into the local spoken assistant in a subsequent reviewable slice. Keep work in Draft PRs; merge only on explicit request.
+Measure wake-to-ack playback initiation, actual ASR readiness, cold/warm engine loads and repeated lock-screen turns. Keep fixed local feedback decoupled from engine readiness; eliminate premature “ready” cues and failures discovered on the physical Pixel. Preserve typed notification permissions and model-tool constraints. Review stacked #50, #51 and #52 in dependency order after integrated device acceptance; do not indiscriminately merge historical draft experiments. This release direction does not mark a numbered legacy roadmap stage Complete.

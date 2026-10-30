@@ -1,23 +1,22 @@
 # Phase 1 Plan
 
-## Active first useful product slice — 2026-10-17
+## Active first useful product slice — Voice v0.1 (updated 2026-10-30)
 
-**Superseding decision:** [voice-first and tool-first direction](VOICE_FIRST_PRODUCT_DIRECTION.md). The nutrition plan retained below is a **historical, paused plan**, not the current implementation queue. Its work was not completed merely because priorities changed.
+**Superseding product focus:** [voice-first decision](VOICE_FIRST_PRODUCT_DIRECTION.md) and [hands-free release acceptance](../releases/VOICE_V1_HANDSFREE_ACCEPTANCE.md). The nutrition plan retained below is historical and paused, not completed.
 
-The active Android milestone is a real-world, offline-capable Hebrew voice interaction:
+The first personal beta must provide useful **no-touch** voice interaction while the Pixel 10 Pro screen is off, **after explicit Android assistant setup and listener opt-in**:
 
-1. The user explicitly starts a safe foreground spoken turn; reliable Zipformer/Gemma/BlueTTS operation is confirmed with repeated Pixel testing.
-2. Gemma selects a defined **read-only** `notifications.read_latest_whatsapp` tool rather than fabricating device state.
-3. An Android implementation enforces explicit Notification Listener permission and returns the newest *accessible* WhatsApp notification or a typed error. It does not claim full WhatsApp chat access.
-4. The assistant reads the selected result aloud locally, with no default Firebase/Core upload.
-5. Test denied/revoked access, missing or hidden notification content, cancellations, repeat turns, memory and lifecycle.
+1. Detect the local wake phrase reliably and promptly acknowledge with fixed, pre-rendered audio independent of Gemma/BlueTTS. A ready cue is valid only when recording can begin; an optional processing cue covers later engine loading.
+2. Carry the request through local Hebrew ASR, Gemma-selected defined read-only tool, typed Android execution and local BlueTTS. Do not claim unrestricted WhatsApp history or bypass keyguard privacy.
+3. Automatically re-arm when safe, expose Stop, handle denied/revoked permissions, cancellation, process/service failures and repeated turns without false readiness.
+4. Verify real screen-off acoustic behavior and battery/thermal impact on the physical Pixel; model-driven synthetic unit/probe passes alone are insufficient.
+5. Pass exact-commit CI, signer-compatible in-place installation, and published acceptance evidence before merging dependent drafts and tagging the personal beta.
 
-No sending/replying, wake-word background activation, Firebase integration, nutrition/photo dashboard or home-Core dependency is required for this slice. Existing nutrition/photos data and merged code are preserved for later optional local tools. Core and Firebase remain candidate asynchronous enrichment architecture.
+The merged Android 0.22 baseline already has experimental wake/assistant/feedback pieces; the tool agent remains in stacked unmerged PRs #50–#52. Neither prototype capability nor this plan equals physical release acceptance. Firebase/Core, photos, nutrition dashboards and new device actions remain out of the initial beta. Existing historical contracts and data are preserved.
 
-**Roadmap accounting:** Stage 0 remains the last `Complete` stage; Stage 1 Windows verification is outstanding and its priority is deferred. Stage 3 remains partial. Draft voice work is not merged completion evidence.
+**Roadmap accounting:** Stage 0 remains the last numbered `Complete` stage; Stage 1 Windows verification is outstanding and deferred. Stage 3 remains partial. A new independently tracked voice-release milestone does not silently complete prior stages.
 
 ---
-
 
 ## Historical nutrition goal (paused)
 
