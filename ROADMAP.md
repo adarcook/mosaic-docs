@@ -602,3 +602,103 @@ A real completed device turn and its failure tests are required. Passing CI or h
 ## Working rule
 
 The project has one primary implementation focus at a time. A stage is marked ✅ **Complete** only when its completion gate is verified and the relevant implementation is merged into `main`.
+
+## Pixel Buds Pro 2 baseline requirement — 2026-10-31
+
+Headset-microphone wake is a required Voice baseline: with the phone outside
+acoustic pickup but within Bluetooth range, say “מוזאיק”, hear immediate cached
+feedback, dictate and hear the answer through the buds with the screen off.
+This is not yet verified or complete. Android's first slice introduces an unwired
+communication-route lease stacked on #57; #54 timing and #55 installation remain
+separate evidence, not headset acceptance. Next: coordinated companion/capture/TTS
+route ownership, verified input/output, opt-in and physical Pixel + buds trials.
+Require disconnect/focus/call/reconnect/Stop tests and matched phone/buds battery
+measurements before release. See [headset architecture](docs/architecture/SYSTEM_ARCHITECTURE.md#11-headset-microphone-voice-baseline)
+and [headset security](docs/architecture/SECURITY.md#headset-route-consent-and-privacy).
+No roadmap stage is promoted by this foundation.
+
+Pixel Buds implementation follow-up (2026-10-31): Android #58 now connects an
+opt-in foreground route owner across wake/capture/cached feedback/TTS, with a
+code10 companion requirement and actual input/output guards. Voice 0.27/code30
+and wake0.9/code10 are installation candidates, not physical release acceptance.
+The owner requested installation; exact-source CI, guarded deployment and acoustic
+results must be recorded separately. No stage is Complete from host tests.
+
+Headset deployment outcome: implementation `c82b174` passed all five hosted gates,
+but installation on this computer stopped before adb install because the enrolled
+development signing key is absent and the existing local key does not match.
+Original computer is unavailable. Pixel remains Voice 0.26/code28 + wake0.8.2/code9;
+no runtime headset-mode/permission/data change or physical acceptance is claimed.
+See Android #58 ASR-42 evidence; resume with the original matching signer.
+
+
+Headset installation/service follow-up, 2026-10-31: the user supplied the original
+matching key and the guarded exact-source update succeeded. Current installation
+is Voice 0.27.1/code31 (`8dfa345`) + wake0.9/code10, retaining data/models and grants.
+The missing-key block above is historical. Background restore now observes return
+to normal audio mode under existing consent, deduplicates/bounds retries and never
+restarts after explicit Stop. A live ordinary process-termination probe produced
+a fresh system-bound assistant and a restore attempt without Activity launch;
+headset capture paused because no Bluetooth headset was currently available.
+This proves rebinding/attempted restoration only. Full headset screen-off speech,
+reboot, audio interruption recovery and battery acceptance remain pending in #58.
+
+
+ASR-43 correction, 2026-10-31: the owner's acoustic trial on 0.27.1 failed.
+Headset input was briefly verified with screen off, then Android reset controller
+communication mode after about six seconds while recording occurred in another
+UID. Brief route health was not sustained acceptance. Android #58 changes the
+ownership contract: foreground wake companion code11 owns its own standby
+focus/mode/input and ack; after mic/route cleanup and observed process death,
+controller code32 acquires capture/playback routing. It releases communication
+routing during ASR/Gemma thinking and reacquires before TTS. This supersedes the
+single cross-UID lease design. No silent keepalive or mode-refresh workaround.
+Wake contract v2 rejects incompatible headset owners. Companion adds normal
+MODIFY_AUDIO_SETTINGS and mediaPlayback FGS for its own route/ack; no new Bluetooth
+runtime grant or raw-audio retention. Physical >60s screen-off input, acoustic
+wake and full request/rearm must be reverified; no completion claim.
+
+ASR-43 deployment: Voice 0.28/code32 + wake0.10/code11 (`a31b6fc`) installed with
+verified original signer and preserved data/models. Recording-UID route ownership
+passed a bounded physical screen-off input gate: 17 healthy windows, 86.3s of
+verified headset PCM with no interruption; active mode owner matched companion
+UID. This supersedes the earlier six-second route failure, not the full product
+acceptance gate. A new owner acoustic trial is pending. Wake/request/reply/rearm,
+latency, interruption/privacy and battery acceptance remain unverified.
+
+
+ASR-44 diagnostic follow-up: owner reported no acoustic response on 0.28 despite
+fresh verified-input health and no detected/dispatch markers. Wake acceptance is
+failed, not pending success. Owner agreed to a coordinated 20s same-input probe in
+volatile RAM: compare native KWS against the same pinned greedy ASR, then retain
+only closed boolean/variant-code diagnostics. No raw audio/transcript files or
+arbitrary text logs; no production wake matching/threshold broadening. Debug-only
+one-shot setup requires existing listening consent and is consumed once. Pending
+results belong in Android #58/ASR-44; no release or roadmap completion.
+
+ASR-44 repeat: owner reported possible late speech in the first probe. A coordinated
+repeat on unchanged code detected the wake word in native KWS; a later ordinary
+wake progressed through ack, request capture-before-ready and ASR/Gemma/TTS
+completion with headset route type7. Owner heard a very quiet cue; ready/reply
+audibility and meaningful request/rearm acceptance are still unconfirmed. Repeated
+wake words were not a semantic task test. No volume/threshold change or completion
+claim; exact boundaries and limits remain in Android #58.
+
+
+ASR-45 background-turn correction: a later ack-only attempt had confirmed wake
+and dispatch but no request capture/ready marker. Controller code34 now schedules
+accepted-wake capture from Activity creation/new intent independently of UI resume,
+only after the existing visible microphone/playback FGS is promoted. Generation
+checks prevent duplicate/stale starts and preserve explicit Stop/timeouts. Manual
+push-to-talk and all role/runtime/keyguard rules remain. No screen-wake request,
+model/threshold/route/volume change. Exact-source install and actual screen-off
+full-turn verification remain required; this is not release acceptance.
+
+ASR-45 physical follow-up: installed Voice0.29/code34 (149447c) + wake0.10.1/code12
+passed one owner-confirmed headset wake→ready→spoken question/answer trial with
+power snapshots Dozing before/during/after and verified non-interactive headset
+input. Software stage completion/rearm was observed and owner confirmed audible
+ready plus answer. Whole turn journal32.164s; no P95/latency target pass. Subsequent
+Bluetooth disappearance paused listening; cause awaits owner clarification. This
+is basic-turn evidence, not release completion: repeated reliability, private-tool
+policy, false/missed wakes, weak cue, interruptions, reboot and battery gates remain.

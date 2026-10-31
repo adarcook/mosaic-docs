@@ -87,3 +87,91 @@ VPS jobs receive only the required input, use short-lived credentials, store tem
 ## Secrets
 
 Use OS keychains or a dedicated secrets manager for the initial Windows and Android deployments. Maintain separate credentials per connector and environment, and support independent rotation and revocation. Container-specific secret mechanisms may be used only for optional services that actually run in containers later.
+## Headset route consent and privacy
+
+Headset wake requires explicit visible opt-in and microphone permission; pairing
+or wearing buds is not consent or user authentication. Retain the persistent
+Stop control, no idle PCM/transcript retention and existing locked-message refusal.
+Do not persist Bluetooth names, addresses or raw audio in diagnostics.
+
+Before enabling the route adapter declare MODIFY_AUDIO_SETTINGS; microphone FGS
+type/permissions and RECORD_AUDIO apply to the recording owner. Request
+BLUETOOTH_CONNECT through Android only if paired-device Bluetooth APIs need it;
+do not add scan/location access for AudioManager route selection. Bluetooth
+connectivity does not waive background microphone start, while-in-use or boot
+restrictions. Android 15 focus eligibility requires the top app or a running FGS.
+See [FGS types](https://developer.android.com/develop/background-work/services/fgs/service-types)
+and [Bluetooth permissions](https://developer.android.com/develop/connectivity/bluetooth/bt-permissions).
+
+Lost route, call/focus interruption, revocation or Stop must cease capture and
+private playback before cleanup. Never silently fall back to phone microphone or
+speaker; reconnect requires fresh route verification. The initial unwired lease
+changes no grants, enabled behavior, retention or signed IPC contract. Physical
+Pixel + Pixel Buds testing remains required before claiming screen-off support.
+
+Headset integration follow-up (2026-10-31): the visible mode choice defaults off.
+MODIFY_AUDIO_SETTINGS is declared; no scan, pairing or runtime Bluetooth grant is
+added. Route IDs/types are transient signed-IPC fields, not logged identities.
+Verify microphone route and unsilenced recording before ready or retained request
+audio; waiting PCM remains volatile. Feedback/TTS send silence until verified
+headset output and stop submitting speech on route loss. Stop ends saved consent;
+a fresh connection can restore listening only under existing consent, never resume
+a partial private request. No locked-notification readout is newly permitted.
+The debug-only owner setup runner sets only headset_mode and reports no acoustic
+pass; it cannot grant permissions or enable saved listening consent. Physical
+disconnect tests must inspect possible residual OS-buffered output before claiming
+no audible leakage. This supersedes the initial unwired-slice status above.
+
+
+Headset installation/service follow-up, 2026-10-31: the user supplied the original
+matching key and the guarded exact-source update succeeded. Current installation
+is Voice 0.27.1/code31 (`8dfa345`) + wake0.9/code10, retaining data/models and grants.
+The missing-key block above is historical. Background restore now observes return
+to normal audio mode under existing consent, deduplicates/bounds retries and never
+restarts after explicit Stop. A live ordinary process-termination probe produced
+a fresh system-bound assistant and a restore attempt without Activity launch;
+headset capture paused because no Bluetooth headset was currently available.
+This proves rebinding/attempted restoration only. Full headset screen-off speech,
+reboot, audio interruption recovery and battery acceptance remain pending in #58.
+
+
+ASR-43 correction, 2026-10-31: the owner's acoustic trial on 0.27.1 failed.
+Headset input was briefly verified with screen off, then Android reset controller
+communication mode after about six seconds while recording occurred in another
+UID. Brief route health was not sustained acceptance. Android #58 changes the
+ownership contract: foreground wake companion code11 owns its own standby
+focus/mode/input and ack; after mic/route cleanup and observed process death,
+controller code32 acquires capture/playback routing. It releases communication
+routing during ASR/Gemma thinking and reacquires before TTS. This supersedes the
+single cross-UID lease design. No silent keepalive or mode-refresh workaround.
+Wake contract v2 rejects incompatible headset owners. Companion adds normal
+MODIFY_AUDIO_SETTINGS and mediaPlayback FGS for its own route/ack; no new Bluetooth
+runtime grant or raw-audio retention. Physical >60s screen-off input, acoustic
+wake and full request/rearm must be reverified; no completion claim.
+
+
+ASR-44 diagnostic follow-up: owner reported no acoustic response on 0.28 despite
+fresh verified-input health and no detected/dispatch markers. Wake acceptance is
+failed, not pending success. Owner agreed to a coordinated 20s same-input probe in
+volatile RAM: compare native KWS against the same pinned greedy ASR, then retain
+only closed boolean/variant-code diagnostics. No raw audio/transcript files or
+arbitrary text logs; no production wake matching/threshold broadening. Debug-only
+one-shot setup requires existing listening consent and is consumed once. Pending
+results belong in Android #58/ASR-44; no release or roadmap completion.
+
+
+ASR-45 background-turn correction: a later ack-only attempt had confirmed wake
+and dispatch but no request capture/ready marker. Controller code34 now schedules
+accepted-wake capture from Activity creation/new intent independently of UI resume,
+only after the existing visible microphone/playback FGS is promoted. Generation
+checks prevent duplicate/stale starts and preserve explicit Stop/timeouts. Manual
+push-to-talk and all role/runtime/keyguard rules remain. No screen-wake request,
+model/threshold/route/volume change. Exact-source install and actual screen-off
+full-turn verification remain required; this is not release acceptance.
+
+ASR-45 delivery refinement: the failed manual Activity was observed STOPPED with
+Pending New Intents. Headset wake candidate code34 therefore uses a separate,
+non-exported lock-visible turn host that finishes afterward, preserving manual
+UI lock visibility and the existing VoiceActivity preference file. It requests no
+screen wake and still waits for FGS promotion before capture. Physical delivery/
+screen-off turn acceptance is pending; internal Activity orchestration remains.
