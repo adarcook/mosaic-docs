@@ -657,3 +657,11 @@ Wake contract v2 rejects incompatible headset owners. Companion adds normal
 MODIFY_AUDIO_SETTINGS and mediaPlayback FGS for its own route/ack; no new Bluetooth
 runtime grant or raw-audio retention. Physical >60s screen-off input, acoustic
 wake and full request/rearm must be reverified; no completion claim.
+
+ASR-43 deployment: Voice 0.28/code32 + wake0.10/code11 (`a31b6fc`) installed with
+verified original signer and preserved data/models. Recording-UID route ownership
+passed a bounded physical screen-off input gate: 17 healthy windows, 86.3s of
+verified headset PCM with no interruption; active mode owner matched companion
+UID. This supersedes the earlier six-second route failure, not the full product
+acceptance gate. A new owner acoustic trial is pending. Wake/request/reply/rearm,
+latency, interruption/privacy and battery acceptance remain unverified.
