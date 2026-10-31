@@ -675,3 +675,11 @@ only closed boolean/variant-code diagnostics. No raw audio/transcript files or
 arbitrary text logs; no production wake matching/threshold broadening. Debug-only
 one-shot setup requires existing listening consent and is consumed once. Pending
 results belong in Android #58/ASR-44; no release or roadmap completion.
+
+ASR-44 repeat: owner reported possible late speech in the first probe. A coordinated
+repeat on unchanged code detected the wake word in native KWS; a later ordinary
+wake progressed through ack, request capture-before-ready and ASR/Gemma/TTS
+completion with headset route type7. Owner heard a very quiet cue; ready/reply
+audibility and meaningful request/rearm acceptance are still unconfirmed. Repeated
+wake words were not a semantic task test. No volume/threshold change or completion
+claim; exact boundaries and limits remain in Android #58.
