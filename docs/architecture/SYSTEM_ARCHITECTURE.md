@@ -536,3 +536,10 @@ checks prevent duplicate/stale starts and preserve explicit Stop/timeouts. Manua
 push-to-talk and all role/runtime/keyguard rules remain. No screen-wake request,
 model/threshold/route/volume change. Exact-source install and actual screen-off
 full-turn verification remain required; this is not release acceptance.
+
+ASR-45 delivery refinement: the failed manual Activity was observed STOPPED with
+Pending New Intents. Headset wake candidate code34 therefore uses a separate,
+non-exported lock-visible turn host that finishes afterward, preserving manual
+UI lock visibility and the existing VoiceActivity preference file. It requests no
+screen wake and still waits for FGS promotion before capture. Physical delivery/
+screen-off turn acceptance is pending; internal Activity orchestration remains.
