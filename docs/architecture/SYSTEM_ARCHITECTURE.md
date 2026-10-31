@@ -501,3 +501,18 @@ a fresh system-bound assistant and a restore attempt without Activity launch;
 headset capture paused because no Bluetooth headset was currently available.
 This proves rebinding/attempted restoration only. Full headset screen-off speech,
 reboot, audio interruption recovery and battery acceptance remain pending in #58.
+
+
+ASR-43 correction, 2026-10-31: the owner's acoustic trial on 0.27.1 failed.
+Headset input was briefly verified with screen off, then Android reset controller
+communication mode after about six seconds while recording occurred in another
+UID. Brief route health was not sustained acceptance. Android #58 changes the
+ownership contract: foreground wake companion code11 owns its own standby
+focus/mode/input and ack; after mic/route cleanup and observed process death,
+controller code32 acquires capture/playback routing. It releases communication
+routing during ASR/Gemma thinking and reacquires before TTS. This supersedes the
+single cross-UID lease design. No silent keepalive or mode-refresh workaround.
+Wake contract v2 rejects incompatible headset owners. Companion adds normal
+MODIFY_AUDIO_SETTINGS and mediaPlayback FGS for its own route/ack; no new Bluetooth
+runtime grant or raw-audio retention. Physical >60s screen-off input, acoustic
+wake and full request/rearm must be reverified; no completion claim.
