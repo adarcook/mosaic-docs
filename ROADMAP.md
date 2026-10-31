@@ -693,3 +693,12 @@ checks prevent duplicate/stale starts and preserve explicit Stop/timeouts. Manua
 push-to-talk and all role/runtime/keyguard rules remain. No screen-wake request,
 model/threshold/route/volume change. Exact-source install and actual screen-off
 full-turn verification remain required; this is not release acceptance.
+
+ASR-45 physical follow-up: installed Voice0.29/code34 (149447c) + wake0.10.1/code12
+passed one owner-confirmed headset wake→ready→spoken question/answer trial with
+power snapshots Dozing before/during/after and verified non-interactive headset
+input. Software stage completion/rearm was observed and owner confirmed audible
+ready plus answer. Whole turn journal32.164s; no P95/latency target pass. Subsequent
+Bluetooth disappearance paused listening; cause awaits owner clarification. This
+is basic-turn evidence, not release completion: repeated reliability, private-tool
+policy, false/missed wakes, weak cue, interruptions, reboot and battery gates remain.
