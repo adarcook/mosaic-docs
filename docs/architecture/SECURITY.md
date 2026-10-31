@@ -121,3 +121,15 @@ The debug-only owner setup runner sets only headset_mode and reports no acoustic
 pass; it cannot grant permissions or enable saved listening consent. Physical
 disconnect tests must inspect possible residual OS-buffered output before claiming
 no audible leakage. This supersedes the initial unwired-slice status above.
+
+
+Headset installation/service follow-up, 2026-10-31: the user supplied the original
+matching key and the guarded exact-source update succeeded. Current installation
+is Voice 0.27.1/code31 (`8dfa345`) + wake0.9/code10, retaining data/models and grants.
+The missing-key block above is historical. Background restore now observes return
+to normal audio mode under existing consent, deduplicates/bounds retries and never
+restarts after explicit Stop. A live ordinary process-termination probe produced
+a fresh system-bound assistant and a restore attempt without Activity launch;
+headset capture paused because no Bluetooth headset was currently available.
+This proves rebinding/attempted restoration only. Full headset screen-off speech,
+reboot, audio interruption recovery and battery acceptance remain pending in #58.
