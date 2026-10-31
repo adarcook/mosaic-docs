@@ -683,3 +683,13 @@ completion with headset route type7. Owner heard a very quiet cue; ready/reply
 audibility and meaningful request/rearm acceptance are still unconfirmed. Repeated
 wake words were not a semantic task test. No volume/threshold change or completion
 claim; exact boundaries and limits remain in Android #58.
+
+
+ASR-45 background-turn correction: a later ack-only attempt had confirmed wake
+and dispatch but no request capture/ready marker. Controller code34 now schedules
+accepted-wake capture from Activity creation/new intent independently of UI resume,
+only after the existing visible microphone/playback FGS is promoted. Generation
+checks prevent duplicate/stale starts and preserve explicit Stop/timeouts. Manual
+push-to-talk and all role/runtime/keyguard rules remain. No screen-wake request,
+model/threshold/route/volume change. Exact-source install and actual screen-off
+full-turn verification remain required; this is not release acceptance.
