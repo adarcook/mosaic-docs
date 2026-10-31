@@ -148,3 +148,13 @@ Wake contract v2 rejects incompatible headset owners. Companion adds normal
 MODIFY_AUDIO_SETTINGS and mediaPlayback FGS for its own route/ack; no new Bluetooth
 runtime grant or raw-audio retention. Physical >60s screen-off input, acoustic
 wake and full request/rearm must be reverified; no completion claim.
+
+
+ASR-44 diagnostic follow-up: owner reported no acoustic response on 0.28 despite
+fresh verified-input health and no detected/dispatch markers. Wake acceptance is
+failed, not pending success. Owner agreed to a coordinated 20s same-input probe in
+volatile RAM: compare native KWS against the same pinned greedy ASR, then retain
+only closed boolean/variant-code diagnostics. No raw audio/transcript files or
+arbitrary text logs; no production wake matching/threshold broadening. Debug-only
+one-shot setup requires existing listening consent and is consumed once. Pending
+results belong in Android #58/ASR-44; no release or roadmap completion.

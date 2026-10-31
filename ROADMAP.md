@@ -665,3 +665,13 @@ verified headset PCM with no interruption; active mode owner matched companion
 UID. This supersedes the earlier six-second route failure, not the full product
 acceptance gate. A new owner acoustic trial is pending. Wake/request/reply/rearm,
 latency, interruption/privacy and battery acceptance remain unverified.
+
+
+ASR-44 diagnostic follow-up: owner reported no acoustic response on 0.28 despite
+fresh verified-input health and no detected/dispatch markers. Wake acceptance is
+failed, not pending success. Owner agreed to a coordinated 20s same-input probe in
+volatile RAM: compare native KWS against the same pinned greedy ASR, then retain
+only closed boolean/variant-code diagnostics. No raw audio/transcript files or
+arbitrary text logs; no production wake matching/threshold broadening. Debug-only
+one-shot setup requires existing listening consent and is consumed once. Pending
+results belong in Android #58/ASR-44; no release or roadmap completion.
